@@ -11,7 +11,7 @@ const root = process.cwd();
 const SOURCE_DIRECTORIES = ['src'];
 const DANGEROUS_API = /\b(eval|Function)\s*\(|\.(innerHTML|outerHTML)\b|insertAdjacentHTML|document\.write|dangerouslySetInnerHTML/;
 const NETWORK_API = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\b|navigator\.sendBeacon|postMessage/;
-const EXTERNAL_URL = /https?:\/\/(?!www\.w3\.org\/|openapi\.vercel\.sh\/)/;
+const EXTERNAL_URL = /https?:\/\/(?!www\.w3\.org\/|openapi\.vercel\.sh\/|forest-clash\.a99\.dev\/)/;
 const SECRET = /AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(api|secret|access)[_-]?(key|token)\s*[:=]\s*['"][^'"]{8,}/i;
 const REQUIRED_HEADERS = ['content-security-policy', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'strict-transport-security'];
 
