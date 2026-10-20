@@ -11,7 +11,10 @@ const root = process.cwd();
 const SOURCE_DIRECTORIES = ['src'];
 const DANGEROUS_API = /\b(eval|Function)\s*\(|\.(innerHTML|outerHTML)\b|insertAdjacentHTML|document\.write|dangerouslySetInnerHTML/;
 const NETWORK_API = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\b|navigator\.sendBeacon|postMessage/;
-const EXTERNAL_URL = /https?:\/\/(?!www\.w3\.org\/|openapi\.vercel\.sh\/|forest-clash\.a99\.dev\/)/;
+const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com'];
+const EXTERNAL_URL = new RegExp(`https?://(?!(?:${ALLOWED_HOSTS.map(host => host.replace(/\./g, '\\.')).join('|')})(?:[/;" ]|$))`);
+/** 스크립트를 받아 올 수 있는 곳: 같은 출처와 방문 분석 도구(Clicky)뿐이다. */
+const ALLOWED_SCRIPT_SOURCES = ["'self'", 'https://static.getclicky.com'];
 const SECRET = /AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(api|secret|access)[_-]?(key|token)\s*[:=]\s*['"][^'"]{8,}/i;
 const REQUIRED_HEADERS = ['content-security-policy', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'strict-transport-security'];
 
@@ -53,17 +56,23 @@ function contentViolations() {
   return files.flatMap(file => [...findLines(file, EXTERNAL_URL, '외부 주소'), ...findLines(file, SECRET, '비밀값으로 보이는 문자열')]);
 }
 
+/** 정책의 script-src가 같은 출처를 포함하고 허용 목록 밖의 곳을 열지 않았는지 본다. */
+function scriptSourceProblems(file, policy) {
+  const sources = ((policy.match(/script-src ([^;]*)/) ?? [])[1] ?? '').trim().split(/\s+/);
+  const outside = sources.filter(source => !ALLOWED_SCRIPT_SOURCES.includes(source));
+  return [
+    ...(sources.includes("'self'") ? [] : [`${file}: script-src에 'self'가 없다`]),
+    ...outside.map(source => `${file}: script-src가 허용 목록 밖의 곳을 연다(${source})`),
+  ];
+}
+
 /** 페이지의 보안 정책(CSP) 메타가 스크립트를 같은 출처로 한정하는지 본다. */
 function policyViolations() {
   const policy = (read('index.html').match(/Content-Security-Policy"\s+content="([^"]*)"/) ?? [])[1];
   if (!policy) {
     return ['index.html: 보안 정책(CSP) 메타가 없다'];
   }
-  const scriptSource = (policy.match(/script-src ([^;]*)/) ?? [])[1] ?? '';
-  const problems = [];
-  if (scriptSource.trim() !== "'self'") {
-    problems.push(`index.html: script-src가 'self'만이 아니다(${scriptSource.trim()})`);
-  }
+  const problems = scriptSourceProblems('index.html', policy);
   if (/unsafe-eval/.test(policy)) {
     problems.push('index.html: unsafe-eval을 허용한다');
   }
@@ -78,8 +87,9 @@ function headerViolations() {
   const rules = JSON.parse(read('vercel.json')).headers ?? [];
   const headers = Object.fromEntries(rules.flatMap(rule => rule.headers.map(({ key, value }) => [key.toLowerCase(), value])));
   const missing = REQUIRED_HEADERS.filter(key => !headers[key]).map(key => `vercel.json: ${key} 헤더가 없다`);
+  const scripts = scriptSourceProblems('vercel.json', headers['content-security-policy'] ?? '');
   const framing = /frame-ancestors 'none'/.test(headers['content-security-policy'] ?? '') ? [] : ["vercel.json: CSP에 frame-ancestors 'none'이 없다"];
-  return [...missing, ...framing];
+  return [...missing, ...scripts, ...framing];
 }
 
 /** 비밀값 파일이 저장소에 올라가지 않게 막혀 있는지, 빌드 결과에 인라인 스크립트와 소스맵이 없는지 본다. */

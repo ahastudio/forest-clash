@@ -53,8 +53,8 @@ PATH에 pnpm이 없으면 `.nvmrc`의 Node 버전과 `packageManager`의 pnpm �
 
 - 게임 코드에 `eval`, `new Function`, `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`가 없다.
 - 게임 코드에 네트워크와 창 사이 통신 API(`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `postMessage`, `importScripts`)가 없다. 이 게임은 서버와 통신하지 않는다. 쓰게 되면 이 점검과 CSP를 함께 바꾼다.
-- 코드, 페이지, 그림, `vercel.json`에 외부 주소와 비밀값(키, 토큰, 비공개 키)이 없다. 예외는 `www.w3.org`, `openapi.vercel.sh`, 이 게임의 배포 주소 `forest-clash.a99.dev`(공유 미리보기 태그용)뿐이다.
-- `index.html`의 CSP 메타가 `script-src 'self'`만 허용하고 `unsafe-eval`을 허용하지 않는다.
+- 코드, 페이지, 그림, `vercel.json`에 외부 주소와 비밀값(키, 토큰, 비공개 키)이 없다. 예외는 `www.w3.org`, `openapi.vercel.sh`, 이 게임의 배포 주소 `forest-clash.a99.dev`(공유 미리보기 태그용), 방문 분석 도구 Clicky의 `static.getclicky.com`과 `in.getclicky.com`뿐이다(`ALLOWED_HOSTS`).
+- `index.html`의 CSP 메타와 `vercel.json`의 CSP가 `script-src`에 `'self'`와 `https://static.getclicky.com`만 허용하고 `unsafe-eval`을 허용하지 않는다.
 - `vercel.json`에 CSP(`frame-ancestors 'none'` 포함), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`가 모두 있다.
 - `.gitignore`가 `.env`를 막는다. 빌드 결과에 인라인 스크립트와 소스맵이 없다.
 

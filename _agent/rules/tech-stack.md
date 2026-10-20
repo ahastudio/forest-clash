@@ -28,6 +28,9 @@
 - 배포는 Vercel이다. 설치·빌드·출력 폴더·보안 헤더·캐시 규칙은 `vercel.json`에 있다.
   `.vercel/`은 저장소에 올리지 않는다.
   보안 헤더나 CSP를 바꾸면 `index.html`의 CSP 메타와 `vercel.json`을 함께 맞추고 `pnpm run security`를 통과시킨다.
+- 방문 분석은 Clicky(`index.html`의 `static.getclicky.com` 스크립트, 사이트 ID는 그 스크립트의 `data-id`)다.
+  CSP는 `script-src`에 `static.getclicky.com`, `img-src`와 `connect-src`에 `in.getclicky.com`을 열어 두었고, 보안 점검의 허용 주소(`ALLOWED_HOSTS`)도 같다.
+  게임 코드(`src/`)는 여전히 네트워크를 쓰지 않는다.
 - 새 의존성은 실제로 필요한 최소한만 추가한다.
 
 ## 확인 도구
