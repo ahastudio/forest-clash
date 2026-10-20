@@ -81,6 +81,11 @@ export class Game {
     this.scene.draw(view, { paused: this.paused, showBoxes: this.showBoxes, version: this.version });
   }
 
+  /** 일시정지를 켜고 끈다. */
+  togglePause(): void {
+    this.paused = !this.paused;
+  }
+
   /** 대전 중에 창을 벗어나면 일시정지한다. */
   pauseIfFighting(): void {
     if (this.engine.phase === 'fight') {

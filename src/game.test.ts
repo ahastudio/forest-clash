@@ -28,6 +28,14 @@ describe('게임', () => {
     expect(game.showBoxes).toBe(false);
   });
 
+  it('일시정지를 켜고 끈다', () => {
+    const { game } = setup();
+    game.togglePause();
+    expect(game.paused).toBe(true);
+    game.togglePause();
+    expect(game.paused).toBe(false);
+  });
+
   it('그릴 수 있는 캔버스가 아니면 알린다', () => {
     const canvas = { getContext: () => null } as unknown as HTMLCanvasElement;
     expect(() => new Game(canvas, 'v1', fakeSprites(true).sprites)).toThrow('2D 캔버스');

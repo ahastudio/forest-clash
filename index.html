@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="game-version" content="__GAME_VERSION__">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://static.getclicky.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: in.getclicky.com; connect-src 'self' in.getclicky.com ws: wss:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>숲속대전 Forest Clash</title>
@@ -24,10 +24,31 @@
   html,body{margin:0;height:100%;background:#1b2a3a;color:#fff;font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
   body{display:flex;align-items:center;justify-content:center}
   canvas{width:min(98vw,calc(98vh*16/9));aspect-ratio:16/9;background:#8fd6ff;border-radius:12px;box-shadow:0 10px 40px #0008}
+  .touch{display:none}
+  @media (pointer:coarse){
+    html,body{touch-action:manipulation;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    .touch{display:block;position:fixed;left:0;right:0;bottom:0;height:0;pointer-events:none}
+    .touch .stick{position:fixed;left:calc(16px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));width:140px;height:140px;border-radius:50%;background:#ffffff26;border:2px solid #ffffff59;pointer-events:auto;touch-action:manipulation;touch-action:none}
+    .touch .knob{position:absolute;left:28%;top:28%;width:44%;height:44%;border-radius:50%;background:#ffffffb3}
+    .touch .buttons{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:12px}
+    .touch button{width:64px;height:64px;padding:0;border-radius:50%;border:2px solid #ffffff66;background:#ffffff26;color:#fff;font:700 13px/1 inherit;pointer-events:auto;touch-action:manipulation;touch-action:none}
+    .touch button[data-pressed]{background:#ffffff80}
+    .touch .pause{position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:44px;height:44px;font-size:16px}
+  }
 </style>
 </head>
 <body>
 <canvas id="c" width="960" height="540"></canvas>
+<div class="touch" data-touch>
+  <div class="stick" data-stick><div class="knob" data-knob></div></div>
+  <div class="buttons">
+    <button type="button" data-button="A">약펀치</button>
+    <button type="button" data-button="C">강펀치</button>
+    <button type="button" data-button="B">약킥</button>
+    <button type="button" data-button="D">강킥</button>
+  </div>
+  <button type="button" class="pause" data-pause aria-label="일시정지">⏸</button>
+</div>
 <script type="module" src="/src/main.ts"></script>
 <script async data-id="101513671" src="https://static.getclicky.com/js"></script>
 </body></html>

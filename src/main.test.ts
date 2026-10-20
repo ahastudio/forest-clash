@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fakeCanvas } from './testing/canvas';
 
+/** 화면 조작 요소(조이스틱, 버튼)를 대신하는 가짜 요소. 이벤트를 받기만 한다. */
+const touchElement = { addEventListener: () => undefined };
+
+/** 버전 표시(meta)는 version으로 돌려주고, 그 밖의 요소는 화면 조작 요소로 돌려준다. */
+const findElement = (version: string | null) => (selector: string) =>
+  selector.startsWith('meta') ? (version === null ? null : { content: version }) : touchElement;
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.resetModules();
@@ -14,7 +21,7 @@ describe('시작', () => {
     const listened: string[] = [];
     vi.stubGlobal('document', {
       getElementById: () => canvas,
-      querySelector: () => ({ content: 'abc123' }),
+      querySelector: findElement('abc123'),
       addEventListener: (type: string) => listened.push(`doc:${type}`),
     });
     vi.stubGlobal('window', { addEventListener: (type: string) => listened.push(`win:${type}`) });
@@ -29,7 +36,7 @@ describe('시작', () => {
       },
     );
     await import('./main');
-    expect(listened).toEqual(['win:keydown', 'win:keyup', 'win:blur', 'doc:visibilitychange']);
+    expect(listened).toEqual(['win:keydown', 'win:keyup', 'win:blur', 'doc:visibilitychange', 'doc:gesturestart']);
     expect(frames).toHaveLength(1);
     expect(of('fillRect').length).toBeGreaterThan(0);
   });
@@ -38,7 +45,7 @@ describe('시작', () => {
     const { g } = fakeCanvas();
     vi.stubGlobal('document', {
       getElementById: () => ({ getContext: () => g }),
-      querySelector: () => null,
+      querySelector: findElement(null),
       addEventListener: () => undefined,
     });
     vi.stubGlobal('window', { addEventListener: () => undefined });

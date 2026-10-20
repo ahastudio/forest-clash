@@ -12,6 +12,9 @@ function setup() {
     paused: false,
     showBoxes: false,
     sound: { init: vi.fn(), toggle: vi.fn() },
+    togglePause() {
+      this.paused = !this.paused;
+    },
     keyboard: { press: vi.fn(), release: vi.fn(), releaseAll: vi.fn() },
     pauseIfFighting: vi.fn(),
   };

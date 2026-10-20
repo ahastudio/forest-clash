@@ -2,9 +2,7 @@ import type { Game } from './game';
 
 /** 보조 키: 일시정지(Space), 소리 켜고 끄기(M), 판정 상자 표시(H). */
 const HELPER_KEYS: Record<string, (game: Game) => void> = {
-  Space: game => {
-    game.paused = !game.paused;
-  },
+  Space: game => game.togglePause(),
   KeyM: game => game.sound.toggle(),
   KeyH: game => {
     game.showBoxes = !game.showBoxes;
