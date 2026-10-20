@@ -12,6 +12,7 @@ pnpm install
 ```
 
 브라우저에서 <http://localhost:58969/>를 엽니다.
+폰 같은 터치 기기에서 열면 화면에 조이스틱과 버튼이 나타납니다(컴퓨터에서는 보이지 않습니다).
 서버 상태와 종료는 `./dev-server.sh status`, `./dev-server.sh stop`입니다.
 빌드는 `pnpm run build`입니다.
 
@@ -45,7 +46,7 @@ Vercel에 배포합니다. 설치, 빌드, 출력 폴더, 보안 헤더, 캐시 
 | `src/ai/` | 컴퓨터 상대 |
 | `src/render/` | 화면 그리기와 효과 |
 | `src/audio/` | 코드로 합성하는 효과음과 배경음악 |
-| `src/input/` | 키보드 입력 |
+| `src/input/` | 키보드 입력과 모바일 화면 조이스틱(1P) |
 | `src/game.ts`, `src/main.ts` | 게임을 묶고 시작하는 곳 |
 | `src/testing/` | 테스트 도우미와 계산 시간 벤치마크(게임에 들어가지 않음) |
 | `public/` | 배경, 로고, 캐릭터 그림 |
