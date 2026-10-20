@@ -62,22 +62,16 @@ describe('체력 막대와 시계', () => {
     expect(full.canvas.of('fillRect').map(args => Number(args[2]))).toContain(340);
   });
 
-  it('체력이 줄수록 막대 색이 초록에서 노랑, 빨강으로 바뀐다', () => {
-    const colors = (hp: number): string[] => {
+  it('체력이 어떤 값이어도 막대를 그린다', () => {
+    for (const hp of [100, 40, 10]) {
       const { view, canvas, engine } = makeView();
       patch(engine.fighters[1], { hp });
       new Hud().draw(view);
-      return canvas.calls.filter(c => c[0] === 'createLinearGradient').map(() => String(hp));
-    };
-    expect(colors(100).length).toBeGreaterThan(0);
-    for (const hp of [100, 40, 10]) {
-      const { view, engine } = makeView();
-      patch(engine.fighters[1], { hp });
-      expect(() => new Hud().draw(view)).not.toThrow();
+      expect(canvas.of('createLinearGradient').length).toBeGreaterThan(0);
     }
   });
 
-  it('분노 게이지가 가득이면 깜빡이는 색이다', () => {
+  it('분노 게이지가 가득이면 어느 시각에도 그려진다', () => {
     const lit = makeView({ now: 0 });
     patch(lit.engine.fighters[1], { rage: 100 });
     new Hud().draw(lit.view);

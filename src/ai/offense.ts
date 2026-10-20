@@ -22,7 +22,7 @@ const HOP_RATE = 0.012;
 
 const roll = ({ random }: Mind, chance: number): boolean => random() < chance;
 
-/** 날아 드는 상대는 대공 어퍼(↓→ 두 방향을 차례로, 위로 올려치는 입력)로 받는다. */
+/** 날아드는 상대는 대공 어퍼(→↓ 두 방향을 차례로, 위로 올려치는 입력)로 받는다. */
 export const antiAir: Tactic = ({ me: _me, foe, dist, toward, mind, difficulty }) => {
   const falling = foe.altitude > ANTI_AIR_MIN_HEIGHT && foe.velocityY < 0 && dist < ANTI_AIR_RANGE && mind.wait === 0;
   if (!falling || !roll(mind, ANTI_AIR_RATE * difficulty.antiAir)) {
@@ -49,7 +49,7 @@ export const superMove: Tactic = ({ me, dist, toward, mind }) => {
   return combo([{ d: 1 }, { d: 1 }, forward, forward, { d: 1 }, { d: 1 }, forward, { ...forward, C: 1 }], 60);
 };
 
-/** 앞 두 번으로 달려 붙는다. */
+/** 앞을 두 번 눌러 달려서 다가간다. */
 function rush({ toward, away }: Context): Decision {
   const forward = go(toward);
   return combo([forward, { [away]: 0 }, ...Array(10).fill(forward)], 20);

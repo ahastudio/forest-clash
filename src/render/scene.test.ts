@@ -59,7 +59,7 @@ describe('장면', () => {
     expect(on.canvas.of('strokeRect').length).toBeGreaterThan(off.canvas.of('strokeRect').length);
   });
 
-  it('일시정지 중에는 조작 안내를 덮고 효과 수명이 줄지 않는다', () => {
+  it('일시정지 중에는 일시정지 화면과 버전을 보인다', () => {
     const { view, canvas } = makeView();
     new Scene().draw(view, { ...flags, paused: true });
     expect(canvas.texts()).toContain('일시정지');

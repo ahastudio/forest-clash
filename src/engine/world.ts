@@ -19,7 +19,7 @@ function initialProgress(): Omit<
   };
 }
 
-/** 한 프레임 안에서만 쓰는 임시 상태: 사건 목록, 히트스톱, 콤보, 누름 기록. */
+/** 판 진행과 별개로 잠깐 쓰는 임시 상태(라운드가 시작되면 일부를 비운다): 사건 목록, 타격 정지, 콤보, 누름 기록. */
 function initialTransients(): Pick<
   World,
   'events' | 'hitstop' | 'comboCount' | 'comboTimer' | 'titleButtonsHeld' | 'resultButtonsHeld'

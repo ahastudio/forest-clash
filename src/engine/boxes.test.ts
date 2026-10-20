@@ -4,8 +4,8 @@ import { activeHitbox, activeWindow, hitboxOf, hurtboxes, overlaps } from './box
 import { makeFighter } from './fighter';
 import { MOVES } from './moves';
 
-const attacker = (mv: 'a5' | 'super' | 'throw', t: number) =>
-  patch(makeFighter(1), { x: 500, state: 'attack', moveId: mv, elapsed: t, face: 1 });
+const attacker = (moveId: 'a5' | 'super' | 'throw', elapsed: number) =>
+  patch(makeFighter(1), { x: 500, state: 'attack', moveId, elapsed, face: 1 });
 
 describe('판정 상자', () => {
   it('공격 상자는 바라보는 방향에 맞춰 뒤집힌다', () => {

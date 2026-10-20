@@ -35,7 +35,7 @@ export interface Timing {
   recovery: number;
 }
 
-/** 땅 기술: 첫 판정 프레임에 맞혔을 때의 이득(advB 막힘, advH 맞음)으로 경직이 정해진다. 'kd'는 쓰러뜨린다. */
+/** 땅 기술: 첫 판정 프레임에 맞혔을 때의 이득(blockAdvantage 막힘, hitAdvantage 맞음)으로 경직이 정해진다. 'kd'는 쓰러뜨린다. */
 export interface GroundSpec extends CommonSpec, Timing {
   blockAdvantage: number;
   hitAdvantage: number | 'kd';
@@ -46,7 +46,7 @@ interface GrabSpec extends CommonSpec, Timing {
   grab: true;
 }
 
-/** 공중 기술: 이득 대신 막힘 경직(bst)과 맞음 경직(hst)을 직접 정한다. */
+/** 공중 기술: 이득 대신 막힘 경직(blockstun)과 맞음 경직(hitstun)을 직접 정한다. */
 export interface AirSpec extends CommonSpec, Timing {
   air: true;
   blockstun: number;

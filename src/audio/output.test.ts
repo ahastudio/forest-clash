@@ -53,7 +53,7 @@ describe('소리 출력', () => {
     expect(audioContext.filters[0]?.frequency.events[1]?.[1]).toBe(40);
   });
 
-  it('잡음 목소리는 필터를 거쳐 마스터로 가고 늦춤만큼 늦게 시작한다', () => {
+  it('잡음 목소리는 필터를 거쳐 마스터로 가고 지연만큼 늦게 시작한다', () => {
     const { audioContext, output } = make();
     output.playVoices([noise], 2);
     const source = audioContext.sources[0];

@@ -38,7 +38,7 @@ describe('무대', () => {
     expect(near.x).toBeCloseTo(WALL_R - 52);
   });
 
-  it('왼쪽이 벽에 붙고 오른쪽이 벽에 붙은 경우처럼 좌우가 뒤바뀐 배치도 처리한다', () => {
+  it('왼쪽 벽에 붙은 쪽은 움직이지 않고 겹친 만큼 오른쪽이 밀려난다', () => {
     const [a, b] = stage({ x: WALL_L }, { x: WALL_L + 10 });
     expect(a.x).toBe(WALL_L);
     expect(b.x).toBeCloseTo(WALL_L + 52);

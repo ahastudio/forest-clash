@@ -41,7 +41,7 @@ describe('캔버스 도우미', () => {
     expect(calls.length).toBeGreaterThan(6);
   });
 
-  it('점들을 이어 닫힌 길을 만든다', () => {
+  it('점들을 이어 닫힌 경로를 만든다', () => {
     const { g, calls } = fakeCanvas();
     tracePolygon(g, [
       { x: 0, y: 0 },

@@ -23,7 +23,7 @@ interface Throwing {
   direction: number;
 }
 
-/** 던져진 쪽이 맞은 상태가 된다: 쓰러지는 날아감이고 잡힘이 풀린다. */
+/** 던져진 쪽은 맞은 상태가 되어 날아가 쓰러지고, 잡힘이 풀린다. */
 function markTossed(victim: Fighter): void {
   victim.altitude = Math.max(victim.altitude, AIRBORNE_EPSILON);
   patch(victim, {

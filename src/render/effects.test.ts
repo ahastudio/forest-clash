@@ -33,7 +33,7 @@ describe('효과', () => {
     expect(effects.particles.at(-1)?.color).toBe('#ffa526');
   });
 
-  it('색종이는 80개까지만 늘어난다', () => {
+  it('색종이는 80개 이상이면 더 늘리지 않는다', () => {
     fixedRandom();
     const effects = new Effects();
     for (let i = 0; i < 40; i++) {

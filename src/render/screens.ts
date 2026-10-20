@@ -11,7 +11,7 @@ const RESULT_PROMPT_DELAY = 120;
 const INTRO_CALL_FRAMES = 45;
 
 /** 깜빡이는 글자가 보이는 구간인가. */
-const isBlinkOn = (phaseT: number): boolean => Math.floor(phaseT / BLINK_FRAMES) % 2 === 0;
+const isBlinkOn = (phaseTime: number): boolean => Math.floor(phaseTime / BLINK_FRAMES) % 2 === 0;
 
 function titleShade(g: Ctx): CanvasGradient {
   const shade = g.createLinearGradient(0, 0, 0, SCREEN_HEIGHT);

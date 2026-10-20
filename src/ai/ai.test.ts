@@ -162,7 +162,7 @@ describe('방어', () => {
 });
 
 describe('공격', () => {
-  it('날아 드는 상대는 대공 어퍼 입력으로 받는다', () => {
+  it('날아드는 상대는 대공 어퍼 입력으로 받는다', () => {
     rolls(0);
     const decision = antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, dist: 80 }));
     expect(decision?.press).toEqual({ r: 1 });
@@ -204,7 +204,7 @@ describe('공격', () => {
 });
 
 describe('접근과 공격 고르기', () => {
-  it('아주 멀면 앞으로 걷고 가끔 앞 두 번으로 달려 붙는다', () => {
+  it('아주 멀면 앞으로 걷고 가끔 앞을 두 번 눌러 달려서 다가간다', () => {
     rolls(0.5);
     expect(engage(situation({ dist: 300 }))?.press).toEqual({ r: 1 });
     rolls(0.01);
@@ -234,7 +234,7 @@ describe('접근과 공격 고르기', () => {
     [0.25, { l: 1 }, undefined],
     [0.5, {}, undefined],
   ];
-  it.each(normalRows)('사거리 안에서 롤 %s이면 보통 공격을 고른다', (roll, press, wait) => {
+  it.each(normalRows)('사거리 안에서 난수가 %s이면 보통 공격을 고른다', (roll, press, wait) => {
     rolls(roll * 0.8 + 0.001);
     const decision = engage(situation({ dist: 80 }));
     expect(decision?.press).toEqual(press);

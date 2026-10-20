@@ -15,8 +15,7 @@ const LEAD_VOICE = { kind: 'tone', wave: 'square', duration: STEP_SECONDS * 0.8,
 
 const midiToHz = (midi: number): number => 440 * 2 ** ((midi - 69) / 12);
 
-/** 반복되는 악보에서 step번째 음. 쉬는 칸은 0이다. */
-/** 나머지 연산이라 언제나 악보 안이다. */
+/** 반복되는 악보에서 step번째 음. 쉬는 칸은 0이고, 나머지 연산이라 언제나 악보 안이다. */
 const noteAt = (notes: readonly number[], step: number): number => notes[step % notes.length] as number;
 
 /** 높이가 변하지 않는 음 하나. */

@@ -27,7 +27,7 @@ describe('기술의 발동', () => {
     drive(duel, 90, tap(button, 0, extra));
     const move = eventsOf(duel, 'move')[0];
     const contact = contactOf(duel);
-    expect(contact && move ? contact.f - move.f : null).toBe(MOVES[id].start);
+    expect(contact && move ? contact.frame - move.frame : null).toBe(MOVES[id].start);
   });
 });
 
@@ -70,7 +70,7 @@ function measureAdvantage(id: MoveId, button: Button, extra: Partial<PadInput>, 
   return freeAttacker !== null && freeDefender !== null ? freeDefender - freeAttacker : null;
 }
 
-describe('막힘·맞음 이득은 프레임 표와 같다', () => {
+describe('막힘·맞음 이득은 기술 표(`MOVES`)의 값과 같다', () => {
   const rows: Row[] = [
     ['a5', 'A', {}],
     ['b5', 'B', {}],
@@ -559,7 +559,7 @@ describe('벽과 쓰러짐', () => {
   it('두 캐릭터는 최대 간격을 넘어 벌어지지 않는다', () => {
     const duel = setup(300);
     drive(duel, 400, hold({ l: 1 }), hold({ r: 1 }));
-    expect(Math.abs(duel.L.x - duel.R.x)).toBeLessThanOrEqual(constants.MAXSEP + 1);
+    expect(Math.abs(duel.L.x - duel.R.x)).toBeLessThanOrEqual(constants.MAX_SEPARATION + 1);
   });
   it('쓸기는 쓰러뜨리고, 쓰러진 뒤 일어나 행동할 수 있다', () => {
     const duel = setup(70);

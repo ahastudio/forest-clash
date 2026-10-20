@@ -43,7 +43,7 @@ export type SoundName =
 
 /** 높이가 변하는 폭: [처음 높이, 끝 높이]. */
 type Glide = readonly [from: number, to: number];
-/** 소리의 모양: [길이(초), 크기, 늦춤(초)]. */
+/** 소리의 모양: [길이(초), 크기, 지연(초)]. */
 type Envelope = readonly [duration: number, volume: number, delay?: number];
 
 const tone = (wave: OscillatorType, [from, to]: Glide, [duration, volume, delay = 0]: Envelope): ToneVoice => ({

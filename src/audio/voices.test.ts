@@ -23,7 +23,7 @@ describe('효과음', () => {
     expect(strong[0]?.duration).toBeGreaterThan(weak[0]?.duration ?? 0);
   });
 
-  it('여러 음으로 이루어진 소리는 늦춤이 있다', () => {
+  it('여러 음으로 이루어진 소리는 지연이 있다', () => {
     const win = SOUNDS.win(0);
     expect(win[3]?.delay).toBeCloseTo(0.42);
     expect(SOUNDS.fight(0)).toHaveLength(4);

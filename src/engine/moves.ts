@@ -41,10 +41,10 @@ function stuns(spec: MoveSpec): Pick<Move, 'blockstun' | 'hitstun'> {
 }
 
 function derive(id: MoveId, spec: MoveSpec): Move {
-  const hs = spec.hitstop ?? (spec.heavy ? HEAVY_HITSTOP : LIGHT_HITSTOP);
+  const hitstop = spec.hitstop ?? (spec.heavy ? HEAVY_HITSTOP : LIGHT_HITSTOP);
   const { start, end, total } = timing(spec);
   const windows = hasWindows(spec) ? spec.windows : ([[start, end]] as const);
-  return { ...spec, id, hitstop: hs, start, end, total, windows, ...stuns(spec) };
+  return { ...spec, id, hitstop, start, end, total, windows, ...stuns(spec) };
 }
 
 const ids = Object.keys(SPECS) as MoveId[];

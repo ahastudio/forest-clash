@@ -120,7 +120,7 @@ describe('게임', () => {
     expect(g).toBeDefined();
   });
 
-  it('소리와 사건은 엔진 사건이 효과로 이어진다', () => {
+  it('엔진 사건이 화면 효과로 이어진다', () => {
     const { game } = setup();
     startMatch(game);
     game.engine.events.push({ type: 'ko', id: 0, x: 400 });

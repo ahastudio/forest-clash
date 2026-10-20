@@ -20,8 +20,8 @@ export function gainRage(fighter: Fighter, amount: number): void {
 
 /** 맞힌 쪽의 콤보 수를 하나 올린다. 이어진 콤보가 없으면 새 콤보로 센다. */
 export function countCombo(world: World, attacker: Fighter, defender: Fighter): void {
-  const sofar = world.comboTimer[attacker.id] > 0 ? world.comboCount[attacker.id] : 0;
-  world.comboCount[attacker.id] = sofar + 1;
+  const previousHits = world.comboTimer[attacker.id] > 0 ? world.comboCount[attacker.id] : 0;
+  world.comboCount[attacker.id] = previousHits + 1;
   world.comboTimer[attacker.id] = COMBO_WINDOW;
   world.comboCount[defender.id] = 0;
 }

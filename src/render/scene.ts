@@ -43,7 +43,7 @@ function drawBackground({ g, sprites }: View): void {
   }
 }
 
-/** 가장자리를 어둡게 하는 원형 그러데이션. */
+/** 가장자리를 어둡게 하는 원형 그라데이션. */
 function vignetteGradient(g: Ctx): CanvasGradient {
   const gradient = g.createRadialGradient(
     CENTER_X,

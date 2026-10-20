@@ -105,7 +105,7 @@ export const forwardHeld = (fighter: Fighter): boolean => (fighter.face > 0 ? fi
 /** 바라보는 반대쪽 방향키를 누르고 있는가. */
 export const backHeld = (fighter: Fighter): boolean => (fighter.face > 0 ? fighter.input.l : fighter.input.r);
 
-/** 숫자패드 방향의 가로 칸: 앞이면 첫째, 뒤면 둘째, 아니면 셋째 줄. */
+/** 숫자패드 방향표: 앞이면 3·6·9, 뒤면 1·4·7, 가운데면 2·5·8 중에서 위아래 입력으로 고른다. */
 const NUMPAD = {
   forward: { down: 3, up: 9, none: 6 },
   back: { down: 1, up: 7, none: 4 },
@@ -219,7 +219,7 @@ export function readInput(world: World, fighter: Fighter, input: Partial<PadInpu
   recordHistory(world, fighter);
 }
 
-/** 1프레임 지연: 두 버튼 동시 입력을 구분하기 위함이다. */
+/** 버튼을 누른 지 1프레임 이상 maxAge프레임 이하이면 유효하다. 1프레임 지연은 두 버튼 동시 입력을 구분하기 위함이다. */
 export const pressed = (fighter: Fighter, b: Button, maxAge = BUFFER_FRAMES): boolean =>
   fighter.buttonAge[b] <= maxAge && fighter.buttonAge[b] >= 1;
 

@@ -6,7 +6,7 @@ import { patch } from '../patch';
 export const idlePad = (): PadInput => ({ l: 0, r: 0, u: 0, d: 0, A: 0, B: 0, C: 0, D: 0 });
 
 /** 프레임 번호를 붙여 모아 둔 사건. */
-type LoggedEvent = GameEvent & { f: number };
+type LoggedEvent = GameEvent & { frame: number };
 
 /** 프레임마다 입력을 돌려주는 함수. i는 이번 테스트에서 몇 번째 프레임인가. */
 export type Script = (i: number) => Partial<PadInput>;
@@ -42,7 +42,7 @@ export function drive(duel: Duel, frames: number, left?: Script | null, right?: 
     const b = { ...idlePad(), ...right?.(i) };
     duel.engine.step([b, a]);
     for (const event of duel.engine.consume()) {
-      duel.events.push({ ...event, f: duel.engine.frame });
+      duel.events.push({ ...event, frame: duel.engine.frame });
     }
   }
 }
@@ -66,8 +66,8 @@ export const isNeutral = (fighter: Fighter): boolean =>
 export const eventsOf = <T extends GameEvent['type']>(
   duel: Duel,
   type: T,
-): (Extract<GameEvent, { type: T }> & { f: number })[] =>
-  duel.events.filter((e): e is Extract<GameEvent, { type: T }> & { f: number } => e.type === type);
+): (Extract<GameEvent, { type: T }> & { frame: number })[] =>
+  duel.events.filter((e): e is Extract<GameEvent, { type: T }> & { frame: number } => e.type === type);
 
 /** 테스트마다 같은 값이 나오도록 하는 작은 난수 생성기. */
 export function seededRandom(seed: number): () => number {

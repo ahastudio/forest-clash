@@ -44,7 +44,7 @@ describe('라운드 안내', () => {
     expect(canvas.texts()).toEqual(['K.O.', '2P 승!']);
   });
 
-  it('1P가 이겼을 때와 비겼을 때, 안내가 길어졌을 때', () => {
+  it('1P가 이겼을 때와 비겼을 때, 안내 표시 시간이 지났을 때', () => {
     const first = makeView();
     patch(first.engine, { banner: 'TIME UP', phaseTime: 50, wins: [1, 0] });
     drawRoundEnd(first.view);

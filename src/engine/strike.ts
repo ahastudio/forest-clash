@@ -38,7 +38,7 @@ export function recoil({ attacker, defender, move }: Strike, share: number): voi
   attacker.knockback = -directionToward(attacker, defender) * move.pushback * share * (1 - KNOCKBACK_DECAY);
 }
 
-/** 막은 쪽과 때린 쪽의 분노 게이지가 찬다. */
+/** 맞은 쪽(막은 쪽 포함)과 때린 쪽의 분노 게이지가 찬다. */
 export function exchangeRage(
   { attacker, defender }: Strike,
   { defenderGain, attackerGain }: { defenderGain: number; attackerGain: number },

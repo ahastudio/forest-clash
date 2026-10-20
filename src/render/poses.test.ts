@@ -5,7 +5,7 @@ import { patch } from '../patch';
 import { poseKey } from './poses';
 
 const fighter = (changes: Partial<Fighter>): Fighter => patch(makeFighter(1), changes);
-const attacking = (mv: MoveId, t: number): Fighter => fighter({ state: 'attack', moveId: mv, elapsed: t });
+const attacking = (moveId: MoveId, elapsed: number): Fighter => fighter({ state: 'attack', moveId, elapsed });
 
 describe('상태별 자세', () => {
   const rows: [Partial<Fighter>, string][] = [

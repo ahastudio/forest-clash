@@ -1,15 +1,5 @@
 import { activeHitbox, hurtboxes } from './boxes';
-import {
-  CROUCH_HEIGHT,
-  GRAVITY,
-  MAX_HP,
-  MAX_SEPARATION,
-  RAGE_MAX,
-  STAND_HEIGHT,
-  THROW_RANGE,
-  WALL_L,
-  WALL_R,
-} from './constants';
+import { MAX_SEPARATION, THROW_RANGE, WALL_L, WALL_R } from './constants';
 import type { Inputs } from './flow';
 import { anyButton, newMatch, step, toTitle } from './flow';
 import { MOVE_LIST, MOVES } from './moves';
@@ -23,17 +13,7 @@ export type { Move, MoveId, MoveKind } from './moves';
 export type * from './types';
 export { MOVE_LIST, MOVES };
 
-export const constants = {
-  WALL_L,
-  WALL_R,
-  MAXSEP: MAX_SEPARATION,
-  HP: MAX_HP,
-  RAGE_MAX,
-  STAND_H: STAND_HEIGHT,
-  CROUCH_H: CROUCH_HEIGHT,
-  THROW_RANGE,
-  GRAV: GRAVITY,
-} as const;
+export const constants = { WALL_L, WALL_R, MAX_SEPARATION, THROW_RANGE } as const;
 
 export interface Engine extends World {
   newMatch(mode: GameMode): void;

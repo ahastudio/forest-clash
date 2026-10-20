@@ -16,7 +16,7 @@ export interface Difficulty {
   waitScale: number;
   /** 막고 있는 상대의 방어 자세를 읽어 압박할 확률. */
   mix: number;
-  /** 날아 드는 상대를 대공 어퍼로 받을 확률의 바탕값. */
+  /** 날아드는 상대를 대공 어퍼로 받을 확률의 바탕값. */
   antiAir: number;
 }
 
