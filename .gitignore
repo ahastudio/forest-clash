@@ -1,6 +1,22 @@
+# 의존성, 빌드 결과, 검사 결과
 node_modules/
 dist/
-.dev-server.log
+coverage/
+.vite/
+*.tsbuildinfo
+.pnpm-store/
+.vercel/
+
+# 로그와 임시 파일
+*.log
+.DS_Store
+
+# 비밀값
 .env
 .env.*
 !.env.example
+
+# 편집기
+.idea/
+.vscode/
+*.swp

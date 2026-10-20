@@ -1,0 +1,35 @@
+{
+  "name": "forest-clash",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
+    "lint": "biome check --error-on-warnings .",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "check": "pnpm run guard && pnpm run typecheck && pnpm run lint && pnpm run coverage && pnpm run score",
+    "guard": "node _agent/checks/check_typescript_version.cjs && node _agent/checks/check_coverage_thresholds.cjs",
+    "score": "node _agent/checks/quality_score.cjs src --min 95",
+    "bench": "vitest bench --run --outputJson=coverage/bench.json",
+    "budget": "node _agent/checks/performance_budget.cjs",
+    "security": "node _agent/checks/security_scan.cjs",
+    "audit:dependencies": "pnpm audit --audit-level low",
+    "check:full": "pnpm run check && pnpm run build && pnpm run bench && pnpm run budget && pnpm run security && pnpm run audit:dependencies"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "^4.1.12",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4",
+    "vitest": "^4.1.12"
+  }
+}
