@@ -8,6 +8,9 @@ const touchElement = { addEventListener: () => undefined };
 const findElement = (version: string | null) => (selector: string) =>
   selector.startsWith('meta') ? (version === null ? null : { content: version }) : touchElement;
 
+/** 터치 기기가 아닌 화면을 대신하는 가짜 matchMedia. */
+const matchMedia = () => ({ matches: false });
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.resetModules();
@@ -24,7 +27,7 @@ describe('시작', () => {
       querySelector: findElement('abc123'),
       addEventListener: (type: string) => listened.push(`doc:${type}`),
     });
-    vi.stubGlobal('window', { addEventListener: (type: string) => listened.push(`win:${type}`) });
+    vi.stubGlobal('window', { addEventListener: (type: string) => listened.push(`win:${type}`), matchMedia });
     vi.stubGlobal('performance', { now: () => 0 });
     vi.stubGlobal('requestAnimationFrame', (callback: () => void) => frames.push(callback));
     vi.stubGlobal(
@@ -48,7 +51,7 @@ describe('시작', () => {
       querySelector: findElement(null),
       addEventListener: () => undefined,
     });
-    vi.stubGlobal('window', { addEventListener: () => undefined });
+    vi.stubGlobal('window', { addEventListener: () => undefined, matchMedia });
     vi.stubGlobal('performance', { now: () => 0 });
     vi.stubGlobal('requestAnimationFrame', () => 0);
     vi.stubGlobal(

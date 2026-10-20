@@ -17,6 +17,13 @@ describe('타이틀', () => {
     expect(off.canvas.texts().join('')).toContain('조작법');
   });
 
+  it('터치 기기에서는 Space 대신 일시정지 버튼을 안내한다', () => {
+    const { view, canvas } = makeView({ input: 'touch' });
+    drawTitle(view);
+    expect(canvas.texts()).toContain('오른쪽 위 ⏸ 버튼: 조작법과 일시정지');
+    expect(canvas.texts().join('')).not.toContain('Space');
+  });
+
   it('로고 그림을 아직 못 불렀으면 글자로 대신한다', () => {
     const { view, canvas } = makeView({ loaded: false });
     drawTitle(view);

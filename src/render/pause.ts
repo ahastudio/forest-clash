@@ -4,6 +4,7 @@ import { fillScreen, roundRectPath, withState } from './canvas';
 import type { Ctx } from './layout';
 import { CENTER_X, GOLD, SCREEN_HEIGHT, SCREEN_WIDTH } from './layout';
 import { smallText, wrapText } from './text';
+import type { View } from './view';
 
 const HELP_ROWS: readonly (readonly [string, string])[] = [
   [
@@ -148,14 +149,13 @@ function drawPads(g: Ctx): void {
   }
 }
 
-function drawPauseHeadings(g: Ctx): void {
-  smallText(g, '일시정지', { x: CENTER_X, y: 40, size: 30, color: GOLD });
+function drawKeyboardHeadings(g: Ctx): void {
   smallText(g, '1P (오른쪽 캐릭터)', { x: 250, y: 62, size: 15, color: '#ff9a8a', weight: 800 });
   smallText(g, '2P (왼쪽 캐릭터)', { x: 710, y: 62, size: 15, color: '#8ab8ff', weight: 800 });
 }
 
-function drawPauseFooter(g: Ctx, version: string): void {
-  smallText(g, 'Space 계속   M 소리   H 판정 상자 표시', {
+function drawPauseFooter(g: Ctx, { text, version }: { text: string; version: string }): void {
+  smallText(g, text, {
     x: CENTER_X,
     y: SCREEN_HEIGHT - 22,
     size: 16,
@@ -165,11 +165,22 @@ function drawPauseFooter(g: Ctx, version: string): void {
   smallText(g, `버전 ${version}`, { ...style, align: 'right', weight: 600 });
 }
 
-/** 일시정지 화면: 조작법 안내. */
-export function drawPause(g: Ctx, version: string): void {
+function drawPauseBackdrop(g: Ctx): void {
   fillScreen(g, 'rgba(10,18,36,0.95)');
-  drawPauseHeadings(g);
+  smallText(g, '일시정지', { x: CENTER_X, y: 40, size: 30, color: GOLD });
+}
+
+function drawKeyboardGuide(g: Ctx): void {
+  drawKeyboardHeadings(g);
   drawPads(g);
+}
+
+/** 일시정지 화면: 조작법 안내. 키보드 그림은 키보드를 쓸 때만 보이고, 아래 문구는 입력 장치마다 다르다. */
+export function drawPause({ g, guide }: View, version: string): void {
+  drawPauseBackdrop(g);
+  if (guide.showKeyboards) {
+    drawKeyboardGuide(g);
+  }
   HELP_ROWS.reduce((y, row) => drawHelpRow(g, row, y), HELP_TOP);
-  drawPauseFooter(g, version);
+  drawPauseFooter(g, { text: guide.pauseFooter, version });
 }

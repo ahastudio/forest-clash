@@ -111,7 +111,7 @@ export class Scene {
     drawVignette(view.g);
     OVERLAYS[view.engine.phase](this, view);
     if (flags.paused) {
-      drawPause(view.g, flags.version);
+      drawPause(view, flags.version);
     }
   }
 

@@ -1,5 +1,7 @@
 import type { Engine } from '../engine';
 import { createEngine } from '../engine';
+import type { InputKind } from '../input/kind';
+import { GUIDES } from '../render/guide';
 import type { Ctx } from '../render/layout';
 import { Sprites } from '../render/sprites';
 import type { View } from '../render/view';
@@ -89,9 +91,10 @@ interface TestView {
 }
 
 /** 그리기 테스트용 View. 엔진은 진짜이고, 그림은 모두 불러온 것으로 본다. */
-export function makeView(options: { loaded?: boolean; now?: number } = {}): TestView {
+export function makeView(options: { loaded?: boolean; now?: number; input?: InputKind } = {}): TestView {
   const canvas = fakeCanvas();
   const engine = createEngine();
   const { sprites } = fakeSprites(options.loaded ?? true);
-  return { view: { g: canvas.g, engine, sprites, now: options.now ?? 0 }, canvas, engine };
+  const guide = GUIDES[options.input ?? 'keyboard'];
+  return { view: { g: canvas.g, engine, sprites, now: options.now ?? 0, guide }, canvas, engine };
 }

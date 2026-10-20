@@ -3,7 +3,9 @@ import { Sound } from './audio/sound';
 import type { PadInput, Phase } from './engine';
 import { createEngine } from './engine';
 import { Keyboard } from './input/keyboard';
+import type { InputKind } from './input/kind';
 import type { Effects } from './render/effects';
+import { GUIDES } from './render/guide';
 import { Reactions } from './render/reactions';
 import { Scene } from './render/scene';
 import { Sprites } from './render/sprites';
@@ -42,6 +44,8 @@ export class Game {
   readonly cpu = createAi(this.engine, { level: () => roundLevel(this.engine) });
   paused = false;
   showBoxes = false;
+  /** 안내 문구가 따르는 입력 장치. 폰이면 시작할 때 touch로 바꾼다. */
+  inputKind: InputKind = 'keyboard';
 
   private readonly g: CanvasRenderingContext2D;
 
@@ -77,7 +81,7 @@ export class Game {
 
   /** 지금 상태를 캔버스에 그린다. now는 깜빡임에 쓰는 현재 시각(밀리초)이다. */
   render(now: number): void {
-    const view = { g: this.g, engine: this.engine, sprites: this.sprites, now };
+    const view = { g: this.g, engine: this.engine, sprites: this.sprites, now, guide: GUIDES[this.inputKind] };
     this.scene.draw(view, { paused: this.paused, showBoxes: this.showBoxes, version: this.version });
   }
 

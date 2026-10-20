@@ -41,11 +41,11 @@ function drawTitleLogo({ g, engine, sprites }: View): void {
   }
 }
 
-function drawTitlePrompts({ g, engine }: View): void {
+function drawTitlePrompts({ g, engine, guide }: View): void {
   if (isBlinkOn(engine.phaseTime)) {
     smallText(g, '아무 공격 버튼이나 눌러 시작', { x: CENTER_X, y: 506, size: 24 });
   }
-  smallText(g, '1P 버튼: 컴퓨터와 대전   2P 버튼: 둘이서 대전   Space: 조작법', { x: CENTER_X, y: 530, size: 15 });
+  smallText(g, guide.titleHint, { x: CENTER_X, y: 530, size: 15 });
 }
 
 /** 타이틀: 어둡게 가라앉힌 배경 위에 로고가 흔들리고, 시작 안내가 깜빡인다. */

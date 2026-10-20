@@ -6,10 +6,10 @@ import { fakeCanvas, fakeSprites } from './testing/canvas';
 afterEach(() => vi.restoreAllMocks());
 
 function setup(loaded = true) {
-  const { g } = fakeCanvas();
+  const { g, texts } = fakeCanvas();
   const canvas = { getContext: () => g } as unknown as HTMLCanvasElement;
   const game = new Game(canvas, 'v1', fakeSprites(loaded).sprites);
-  return { game, g };
+  return { game, g, texts };
 }
 
 const startMatch = (game: Game): void => {
@@ -34,6 +34,16 @@ describe('게임', () => {
     expect(game.paused).toBe(true);
     game.togglePause();
     expect(game.paused).toBe(false);
+  });
+
+  it('입력 장치에 맞는 안내 문구로 그린다', () => {
+    const { game, texts } = setup();
+    game.render(0);
+    expect(texts().join('')).toContain('Space: 조작법');
+    expect(texts().join('')).not.toContain('⏸ 버튼');
+    game.inputKind = 'touch';
+    game.render(0);
+    expect(texts().join('')).toContain('⏸ 버튼');
   });
 
   it('그릴 수 있는 캔버스가 아니면 알린다', () => {
@@ -122,10 +132,10 @@ describe('게임', () => {
     expect(game.paused).toBe(true);
   });
 
-  it('그리기는 캔버스에 장면을 그린다', () => {
-    const { game, g } = setup();
+  it('타이틀 장면을 그리면 시작 안내 글자가 나온다', () => {
+    const { game, texts } = setup();
     game.render(0);
-    expect(g).toBeDefined();
+    expect(texts()).toContain('아무 공격 버튼이나 눌러 시작');
   });
 
   it('엔진 사건이 화면 효과로 이어진다', () => {

@@ -1,13 +1,15 @@
 import type { Engine } from '../engine';
+import type { Guide } from './guide';
 import type { Ctx } from './layout';
 import type { CharacterKind, Sprites } from './sprites';
 
-/** 한 번 그릴 때 필요한 것들. now는 깜빡임에 쓰는 현재 시각(밀리초)이다. */
+/** 한 번 그릴 때 필요한 것들. now는 깜빡임에 쓰는 현재 시각(밀리초)이고, guide는 입력 장치에 맞는 안내 문구다. */
 export interface View {
   g: Ctx;
   engine: Engine;
   sprites: Sprites;
   now: number;
+  guide: Guide;
 }
 
 interface Look {
