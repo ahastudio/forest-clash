@@ -4,7 +4,7 @@
 
 ## Requirements
 
-- 기본 시스템은 KOF 98처럼 하되 범위는 작게 한다.
+- 범위는 작게 한다.
 - 게이지가 가득 차도 별도의 상태 변화(맥스 모드)는 없다.
 
 ## Research Findings
@@ -12,7 +12,7 @@
 ### 코드베이스 구조
 
 - `src/engine/damage.ts`: 게이지 증가. `src/engine/actions.ts`: 필살기 입력 판정과 시작.
-- `src/engine/move-specs.ts`: 분노 필살기 표. `src/render/hud-bars.ts`: 분노 막대. `src/render/fighters.ts`: 주황빛.
+- `src/engine/move-specs-special.ts`: 분노 필살기 표. `src/render/hud-bars.ts`: 분노 막대. `src/render/fighters.ts`: 주황빛.
 
 ### 기존 패턴
 
@@ -23,17 +23,17 @@
 
 ### 코드 참조
 
-- 게이지 증가: `src/engine/damage.ts:16`
-- 필살기 입력: `src/engine/actions.ts:73`
-- 분노 막대 색: `src/render/hud-bars.ts:126`
+- 게이지 증가: `src/engine/damage.ts:17`
+- 필살기 입력: `src/engine/actions.ts:76`
+- 분노 막대 색: `src/render/hud-bars.ts:129`
 
 ## Technical Decisions
 
 | Decision | Rationale |
 | -------- | --------- |
-| 게이지 증가 비율: 맞히면 1.0배, 맞으면 1.6배, 막으면 1.5와 2 | spec.md에 정의되어 있다. |
-| 가득 차면 별도 상태 없이 필살기 한 번 | 맥스 모드는 두지 않는다. |
-| 분노 필살기는 앞 7프레임 무적 | spec.md에 정의되어 있다. |
+| 게이지 증가 비율: 맞히면 1.0배, 맞으면 1.6배, 막으면 1.5와 2 | 맞은 쪽이 더 빨리 차게 해 밀리는 쪽이 큰 기술로 뒤집을 기회를 얻게 하고, 막는 쪽과 막힌 쪽도 차서 방어 중에도 게이지가 쌓이게 하기 위해서다. |
+| 가득 차면 별도 상태 없이 필살기 한 번 | 게이지를 쓰는 방법을 필살기 하나로 단순하게 두기 위해서다. |
+| 분노 필살기는 앞 7프레임 무적 | 발동하는 동안 맞아서 게이지만 쓰고 헛되이 끝나지 않게 하기 위해서다. |
 
 ## Issues Encountered
 

@@ -13,7 +13,6 @@
 ### Phase 1: Requirements & Discovery ✅
 
 - [x] 요구사항 정의(맞음 반응의 종류와 수치)
-- [x] KOF 98의 맞음 규칙 조사
 - [x] 스펙 문서 작성 (spec.md)
 
 ### Phase 2: Planning & Structure ✅

@@ -85,6 +85,7 @@ Move(파생)  끝 프레임, 전체 길이, 경직, 판정 구간 목록
 **Green:** `src/engine/moves.ts`
 
 ```ts
+/** 이득에서 경직을 계산한다: 경직 = 이득 + 판정 + 후딜. 쓰러뜨리는 기술은 맞음 경직이 없다. */
 function stunsFromAdvantage(spec: GroundSpec): Pick<Move, 'blockstun' | 'hitstun'> {
   const recovery = spec.active + spec.recovery;
   return {
@@ -108,7 +109,7 @@ function stunsFromAdvantage(spec: GroundSpec): Pick<Move, 'blockstun' | 'hitstun
     drive(duel, 90, tap(button, 0, extra));
     const move = eventsOf(duel, 'move')[0];
     const contact = contactOf(duel);
-    expect(contact && move ? contact.f - move.f : null).toBe(MOVES[id].start);
+    expect(contact && move ? contact.frame - move.frame : null).toBe(MOVES[id].start);
   });
 ```
 
@@ -117,7 +118,9 @@ function stunsFromAdvantage(spec: GroundSpec): Pick<Move, 'blockstun' | 'hitstun
 ```ts
 function connects(strike: Strike): boolean {
   const box = hitboxOf(strike.attacker, strike.move);
-  if (!box || !isOpenWindow(strike) || !isReachable(strike)) return false;
+  if (!box || !isOpenWindow(strike) || !isReachable(strike)) {
+    return false;
+  }
   return hurtboxes(strike.defender).some(hurt => overlaps(box, hurt));
 }
 ```
@@ -134,9 +137,15 @@ function connects(strike: Strike): boolean {
   it('앉아 약펀치 → 앉아 약킥 링크 → 대공 어퍼 취소 콤보', () => {
     const duel = setup(70);
     const script: Script = i => {
-      if (i < 24) return i === 0 ? { d: 1, A: 1 } : i === 13 ? { d: 1, B: 1 } : { d: 1 };
-      if (i < 26) return { r: 1 };
-      if (i < 28) return { d: 1 };
+      if (i < 24) {
+        return i === 0 ? { d: 1, A: 1 } : i === 13 ? { d: 1, B: 1 } : { d: 1 };
+      }
+      if (i < 26) {
+        return { r: 1 };
+      }
+      if (i < 28) {
+        return { d: 1 };
+      }
       return i === 28 ? { d: 1, A: 1 } : {};
     };
     drive(duel, 120, script);
@@ -155,7 +164,9 @@ function connects(strike: Strike): boolean {
 ```ts
 function cancelIntoSpecial(world: World, fighter: Fighter, move: Move): boolean {
   const special = fighter.cancelable && fighter.contact && !move.special ? specialInput(fighter) : null;
-  if (special) startSpecial(world, fighter, special);
+  if (special) {
+    startSpecial(world, fighter, special);
+  }
   return !!special;
 }
 ```
@@ -171,18 +182,22 @@ function cancelIntoSpecial(world: World, fighter: Fighter, move: Move): boolean 
 ```ts
   it('잡히면 어떤 버튼을 눌러도 풀리지 않고 끝까지 던져진다', () => {
     const duel = setup(55);
-    drive(duel, 60, grabAt, i => (i < 14 ? {} : { C: 1, D: 1, u: 1, l: 1 }));
+    const mash: Script = i =>
+      i < 14 ? {} : { A: i % 2, B: (i + 1) % 2, C: i % 3 === 0 ? 1 : 0, D: i % 3 === 1 ? 1 : 0, u: 1, l: 1 };
+    drive(duel, 60, grabAt, mash);
     expect(duel.R.hp).toBe(MAX_HP - MOVES.throw.damage);
     expect(eventsOf(duel, 'toss')).toHaveLength(1);
   });
 ```
 
-**Green:** `src/engine/hits.ts`
+**Green:** `src/engine/grab/entry.ts`
 
 ```ts
-function tryGrab(world: World, strike: Strike): void {
+export function tryGrab(world: World, strike: Strike): void {
   const { attacker, defender } = strike;
-  if (!isGrabFrame(strike) || !canGrab(attacker, defender)) return;
+  if (!isGrabFrame(strike) || !canGrab(attacker, defender)) {
+    return;
+  }
   attacker.contact = { type: 'grab' };
   startGrab(world, attacker, defender);
 }

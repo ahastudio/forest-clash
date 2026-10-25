@@ -79,7 +79,9 @@ GUARD_POSTURE: low → 앉아서 / high → 서서 / mid → 아무 자세 / gra
 
 ```ts
 export function canBlock({ attacker, defender, move }: Strike): boolean {
-  if (!isGuardable(defender) || !holdingBack(defender, attacker)) return false;
+  if (!isGuardable(defender) || !holdingBack(defender, attacker)) {
+    return false;
+  }
   return GUARD_POSTURE[move.kind](defender.input.d);
 }
 ```
@@ -145,4 +147,4 @@ pnpm run check
 
 ### 공중 방어와 가드 캔슬
 
-범위를 작게 잡기 위해 뺐다. 원하면 하나씩 더할 수 있다.
+범위를 작게 잡기 위해 뺐다.

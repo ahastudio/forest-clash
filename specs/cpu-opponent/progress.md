@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/cpu-opponent/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/cpu-opponent/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -33,6 +33,8 @@
 **생성/수정 파일**:
 
 - `src/ai/index.ts`
+- `src/ai/mind.ts`
+- `src/ai/pad.ts`
 - `src/ai/decision.ts`
 - `src/ai/defense.ts`
 - `src/ai/offense.ts`
@@ -62,7 +64,7 @@
 | 반격과 끊기 | 헛친 후딜, 느린 발동 | 약펀치 | 그렇다(`ai.test.ts`) | ✅ |
 | 대공과 필살기 | 떨어지는 상대, 가득 찬 게이지 | 대공 어퍼, 필살기 입력 | 그렇다(`ai.test.ts`) | ✅ |
 | 압박 | 막고 있는 상대의 자세별 | 하단, 상단, 잡기 | 그렇다(`ai.test.ts`) | ✅ |
-| 컴퓨터끼리 한 판 | 같은 시드 세 판 | 언제나 같은 결과 | 그렇다(`regression.test.ts`) | ✅ |
+| 컴퓨터끼리 한 판 | 시드와 난이도 조합이 다른 세 판 | 언제나 같은 결과 | 그렇다(`regression.test.ts`) | ✅ |
 
 ## Error Log
 

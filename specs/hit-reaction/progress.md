@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/hit-reaction/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/hit-reaction/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -50,6 +50,7 @@
 **생성/수정 파일**:
 
 - `src/engine/scenarios.test.ts`
+- `src/engine/juggle.test.ts`
 - `src/engine/states.test.ts`
 - `src/engine/flow.test.ts`
 
@@ -60,6 +61,7 @@
 | 카운터 히트 | 약킥 발동 중 약펀치 | 카운터 히트, 피해 1.25배, 상대 기술 끊김 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 맞교환 | 같은 프레임 약펀치 서로 | 둘 다 맞음 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 쓰러짐 | 쓸기 맞음 | 쓰러졌다 일어나 행동 가능 | 그렇다(`scenarios.test.ts`) | ✅ |
+| 저글 한도 | 띄워진 상대에게 저글이 되는 기술과 되지 않는 기술, 저글 횟수 0, 1, 2 | 되는 기술은 한도 2 안에서만 맞고, 되지 않는 기술은 맞지 않음 | 그렇다(`juggle.test.ts`) | ✅ |
 | 띄워졌다 떨어짐 | 체력이 남은 채 착지 | 쓰러졌다 일어남 | 그렇다(`states.test.ts`) | ✅ |
 | K.O. | 체력 1인 상대에 약펀치 | K.O., 승수 증가, 날아감 | 그렇다(`flow.test.ts`) | ✅ |
 | 시간 초과 | 체력 차이 상태로 시간 종료 | 많은 쪽이 승수 얻음 | 그렇다(`flow.test.ts`) | ✅ |

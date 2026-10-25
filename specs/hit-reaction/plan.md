@@ -87,7 +87,7 @@ Flight  launch / knockdown / wasAirborne / direction
 **Green:** `src/engine/impact.ts`
 
 ```ts
-function strikeDamage(world: World, strike: Strike, counter: boolean): number {
+function strikeDamage(world: World, strike: Strike, { counter }: Pick<Outcome, 'counter'>): number {
   const base = strike.move.windowDamages?.[strike.window] ?? strike.move.damage;
   return Math.max(1, Math.round(base * damageScale(world, strike) * (counter ? COUNTER_DAMAGE_RATE : 1)));
 }
@@ -118,8 +118,11 @@ function strikeDamage(world: World, strike: Strike, counter: boolean): number {
 ```ts
 function reactToHit(strike: Strike, outcome: Outcome): void {
   const flight = flightOf(strike, outcome);
-  if (isFlying(flight)) sendFlying(strike.defender, flight);
-  else staggerDefender(strike, outcome.counter);
+  if (isFlying(flight)) {
+    sendFlying(strike.defender, flight);
+  } else {
+    staggerDefender(strike, outcome);
+  }
 }
 ```
 

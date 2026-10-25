@@ -100,7 +100,12 @@ export function directionsOf(tilt: Tilt): Record<Direction, boolean> {
   }
   const horizontal = Math.abs(tilt.x) >= Math.abs(tilt.y) * SECTOR_RATIO;
   const vertical = Math.abs(tilt.y) >= Math.abs(tilt.x) * SECTOR_RATIO;
-  return { l: horizontal && tilt.x < 0, r: horizontal && tilt.x > 0, u: vertical && tilt.y < 0, d: vertical && tilt.y > 0 };
+  return {
+    l: horizontal && tilt.x < 0,
+    r: horizontal && tilt.x > 0,
+    u: vertical && tilt.y < 0,
+    d: vertical && tilt.y > 0,
+  };
 }
 ```
 
@@ -129,6 +134,17 @@ export function directionsOf(tilt: Tilt): Record<Direction, boolean> {
 export class TouchPad {
   constructor(private readonly keyboard: Keyboard) {}
 
+  tilt(tilt: Tilt): void {
+    const held = directionsOf(tilt);
+    for (const direction of DIRECTIONS) {
+      if (held[direction]) {
+        this.press(direction);
+      } else {
+        this.release(direction);
+      }
+    }
+  }
+
   press(control: keyof Pad): void {
     this.keyboard.press(KEY_MAP[0][control]);
   }
@@ -151,8 +167,12 @@ export class TouchPad {
   it('터치 기기에서는 키보드 그림과 Space 안내 없이 일시정지 버튼으로 계속하라고 알린다', () => {
     const { view, canvas } = makeView({ input: 'touch' });
     drawPause(view, 'abc123');
-    expect(canvas.texts()).toContain('오른쪽 위 ⏸ 버튼으로 계속');
-    expect(canvas.texts()).not.toContain('←');
+    const all = canvas.texts();
+    expect(all).toContain('일시정지');
+    expect(all).toContain('이동');
+    expect(all).toContain('오른쪽 위 ⏸ 버튼으로 계속');
+    expect(all).not.toContain('1P (오른쪽 캐릭터)');
+    expect(all).not.toContain('←');
   });
 ```
 
@@ -160,8 +180,16 @@ export class TouchPad {
 
 ```ts
 export const GUIDES: Record<InputKind, Guide> = {
-  keyboard: { titleHint: '…', pauseFooter: 'Space 계속   M 소리   H 판정 상자 표시', showKeyboards: true },
-  touch: { titleHint: '오른쪽 위 ⏸ 버튼: 조작법과 일시정지', pauseFooter: '오른쪽 위 ⏸ 버튼으로 계속', showKeyboards: false },
+  keyboard: {
+    titleHint: '메뉴를 눌러 대전 방식 선택   Space: 조작법',
+    pauseFooter: 'Space 계속   M 소리   H 판정 상자 표시',
+    showKeyboards: true,
+  },
+  touch: {
+    titleHint: '화면의 메뉴를 눌러 선택   오른쪽 위 ⏸: 조작법',
+    pauseFooter: '오른쪽 위 ⏸ 버튼으로 계속',
+    showKeyboards: false,
+  },
 };
 ```
 
@@ -184,7 +212,7 @@ pnpm run check
 ### Manual Test
 
 1. `./dev-server.sh start` 뒤 같은 네트워크의 폰에서 개발 서버(포트 58969)를 연다.
-2. 조이스틱과 버튼이 보이고, 컴퓨터 화면에서는 보이지 않는지 본다.
+2. 조이스틱과 버튼이 보이고, 터치가 아닌 기기의 화면에서는 보이지 않는지 본다.
 3. 곧게 위로 밀어 제자리 점프가, 비스듬히 밀어 앞(뒤) 점프가 나가는지 본다.
 4. 한 손으로 조이스틱, 다른 손으로 버튼을 눌러도 화면이 확대되지 않는지 본다.
 5. 타이틀과 일시정지 화면에 Space 대신 일시정지 버튼 안내가 나오는지 본다.

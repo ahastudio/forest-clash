@@ -13,7 +13,6 @@
 ### Phase 1: Requirements & Discovery ✅
 
 - [x] 요구사항 정의(단계와 승패)
-- [x] KOF 98의 라운드 규칙 조사
 - [x] 스펙 문서 작성 (spec.md)
 
 ### Phase 2: Planning & Structure ✅
@@ -39,4 +38,3 @@
 - 진행할 때마다 Phase 상태를 업데이트하세요: ⏸️ 대기 → 🔄 진행 중 → ✅ 완료
 - 결정 사항은 findings.md의 Technical Decisions에 기록하세요.
 - 오류는 findings.md의 Issues Encountered에 기록하세요.
-- 3인 팀전은 이번 범위에서 뺐다.

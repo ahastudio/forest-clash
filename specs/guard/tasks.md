@@ -13,7 +13,6 @@
 ### Phase 1: Requirements & Discovery ✅
 
 - [x] 요구사항 정의(방어 입력, 높이, 막은 뒤의 결과)
-- [x] KOF 98의 방어 규칙 조사
 - [x] 스펙 문서 작성 (spec.md)
 
 ### Phase 2: Planning & Structure ✅

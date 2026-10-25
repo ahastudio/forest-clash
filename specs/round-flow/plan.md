@@ -36,7 +36,7 @@
 ### User Flow
 
 ```text
-타이틀 → (공격 버튼) → 라운드 시작 안내 → 대전 → K.O./시간 초과 안내 → 다음 라운드 또는 결과 → (공격 버튼) → 타이틀
+타이틀 → (메뉴를 누름, 게임이 엔진의 버튼 입력으로 바꿈) → 라운드 시작 안내 → 대전 → K.O./시간 초과 안내 → 다음 라운드 또는 결과 → (공격 버튼) → 타이틀
 ```
 
 ### Event Flow
@@ -73,12 +73,16 @@ World
 ```ts
   it('1P 버튼은 컴퓨터와 대전, 2P 버튼만이면 둘이서 대전이다', () => {
     const cpu = createEngine();
-    for (let i = 0; i < 25; i++) cpu.step([idlePad(), idlePad()]);
+    for (let i = 0; i < 25; i++) {
+      cpu.step([idlePad(), idlePad()]);
+    }
     cpu.step([{ A: 1 }, { B: 1 }]);
     expect(cpu.mode).toBe('cpu');
     expect(cpu.consume().map(e => e.type)).toContain('start');
     const two = createEngine();
-    for (let i = 0; i < 25; i++) two.step([idlePad(), idlePad()]);
+    for (let i = 0; i < 25; i++) {
+      two.step([idlePad(), idlePad()]);
+    }
     two.step([idlePad(), { B: 1 }]);
     expect(two.mode).toBe('2p');
   });
@@ -90,7 +94,9 @@ World
 function stepTitle(world: World, inputs: Inputs): void {
   world.phaseTime++;
   const edges = risingEdges(world, 'titleButtonsHeld', inputs);
-  if (world.phaseTime > TITLE_INPUT_DELAY && (edges.first || edges.second)) beginMatch(world, edges);
+  if (world.phaseTime > TITLE_INPUT_DELAY && anyPressed(edges)) {
+    beginMatch(world, edges);
+  }
 }
 ```
 
@@ -121,7 +127,9 @@ function stepTitle(world: World, inputs: Inputs): void {
 ```ts
 function finishRound(world: World): void {
   world.phaseTime--;
-  if (world.phaseTime > 0) return;
+  if (world.phaseTime > 0) {
+    return;
+  }
   const advance = isMatchOver(world) ? endMatch : nextRound;
   advance(world);
 }
@@ -176,7 +184,7 @@ pnpm run check
 
 ### Manual Test
 
-1. 개발 서버를 켜고 I를 눌러 대전을 시작한다.
+1. 개발 서버를 켜고 타이틀의 「혼자서 컴퓨터와」 버튼을 눌러 대전을 시작한다.
 2. ROUND 1과 FIGHT! 안내가 나온 뒤 싸울 수 있는지 본다.
 3. 한 라운드를 K.O.로 끝내 다음 라운드가 처음 상태로 시작되는지 본다.
 4. 두 판을 이겨 결과 화면(색종이)이 나오고 버튼으로 타이틀로 돌아오는지 본다.

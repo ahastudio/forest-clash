@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/rage-gauge/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/rage-gauge/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -34,6 +34,7 @@
 
 - `src/engine/damage.ts`
 - `src/engine/actions.ts`
+- `src/engine/move-specs-special.ts`
 - `src/render/hud-bars.ts`
 - `src/render/fighters.ts`
 
@@ -45,11 +46,13 @@
 
 1. 게이지와 필살기 시나리오 테스트를 썼다.
 2. 분노 막대와 캐릭터 표시 테스트를 썼다.
-3. `pnpm run check`(타입 검사, 린트, 테스트, 커버리지 100%)가 통과했다.
+3. 게이지가 차는 양(맞힘 1.0배와 1.6배, 막힘 1.5와 2, 상한 100)과 막힘 칩 피해의 체력 하한, 막대 색의 시각별 변화를 값으로 확인하는 테스트를 더했다.
+4. `pnpm run check`(타입 검사, 린트, 테스트, 커버리지 100%)가 통과했다.
 
 **생성/수정 파일**:
 
 - `src/engine/scenarios.test.ts`
+- `src/engine/rage.test.ts`
 - `src/render/hud.test.ts`
 - `src/render/fighters.test.ts`
 
@@ -60,7 +63,9 @@
 | 필살기 발동 | 게이지 100, ↓→↓→ + 강펀치 | 필살기가 나가고 게이지가 줄어듦 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 여러 타 | 필살기를 맞힘 | 두 번 이상 맞음 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 게이지 부족 | 게이지 50에서 같은 입력 | 나가지 않음 | 그렇다(`scenarios.test.ts`) | ✅ |
-| 분노 막대 | 게이지 가득 | 깜빡이는 색 | 그렇다(`hud.test.ts`) | ✅ |
+| 게이지가 차는 양 | 약펀치를 맞히고, 막고, 100에 가까운 게이지에서 맞힘 | 맞힌 쪽 3, 맞은 쪽 4.8, 막으면 1.5와 2, 100을 넘지 않음 | 그렇다(`rage.test.ts`) | ✅ |
+| 막힘 칩 피해 | 체력 1인 쪽이 분노 필살기를 막음 | 체력이 1 밑으로 줄지 않음 | 그렇다(`rage.test.ts`) | ✅ |
+| 분노 막대 | 게이지 가득, 서로 다른 두 시각 | 막대 색이 주황과 노랑으로 번갈아 바뀜 | 그렇다(`hud.test.ts`) | ✅ |
 | 주황빛 | 게이지 가득 | 캐릭터 뒤에 주황빛 | 그렇다(`fighters.test.ts`) | ✅ |
 
 ## Error Log

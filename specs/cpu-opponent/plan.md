@@ -87,7 +87,9 @@ Decision  press(지금 누를 것) / wait(쉴 프레임) / sequence(이어서 �
 export function firstOf(tactics: readonly Tactic[], context: Context): Decision {
   for (const tactic of tactics) {
     const decision = tactic(context);
-    if (decision) return decision;
+    if (decision) {
+      return decision;
+    }
   }
   return hold({});
 }
@@ -116,7 +118,9 @@ export function firstOf(tactics: readonly Tactic[], context: Context): Decision 
 ```ts
 export const answerAttack: Tactic = context => {
   const move = attackMove(context.foe);
-  if (!move || context.dist >= SEE_ATTACK_RANGE) return null;
+  if (!move || context.dist >= SEE_ATTACK_RANGE) {
+    return null;
+  }
   noticeAttack(context);
   return punishRecovery(context, move) ?? interruptSlowMove(context, move) ?? blockIncoming(context, move);
 };
@@ -131,7 +135,7 @@ export const answerAttack: Tactic = context => {
 **Red:** `src/ai/ai.test.ts`
 
 ```ts
-  it('아주 멀면 앞으로 걷고 가끔 앞 두 번으로 달려 붙는다', () => {
+  it('아주 멀면 앞으로 걷고 가끔 앞을 두 번 눌러 달려서 다가간다', () => {
     rolls(0.5);
     expect(engage(situation({ dist: 300 }))?.press).toEqual({ r: 1 });
     rolls(0.01);
@@ -145,7 +149,7 @@ export const answerAttack: Tactic = context => {
 
 ```ts
 export const engage: Tactic = context => {
-  const chance = Math.random();
+  const chance = context.mind.random();
   return closeIn(context, chance) ?? strikeFromRange(context, chance);
 };
 ```

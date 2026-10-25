@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/movement/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/movement/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -52,6 +52,7 @@
 - `src/engine/scenarios.test.ts`
 - `src/engine/stage.test.ts`
 - `src/engine/states.test.ts`
+- `src/engine/boxes.test.ts`
 
 ## Test Results
 

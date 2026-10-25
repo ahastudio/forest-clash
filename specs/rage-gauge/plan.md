@@ -17,7 +17,7 @@
 
 - `src/engine/damage.ts`
 - `src/engine/actions.ts`
-- `src/engine/move-specs.ts`
+- `src/engine/move-specs-special.ts`
 - `src/render/hud-bars.ts`
 - `src/render/fighters.ts`
 
@@ -116,7 +116,9 @@ const isSuperInput = (fighter: Fighter): boolean =>
   fighter.rage >= RAGE_MAX && pressed(fighter, 'C', SPECIAL_BUTTON_AGE) && motion(fighter, 'qcf2', SUPER_MOTION);
 
 export function startSpecial(world: World, fighter: Fighter, id: MoveId): void {
-  if (id === 'super') fighter.rage = 0;
+  if (id === 'super') {
+    fighter.rage = 0;
+  }
   startMove(world, fighter, id);
 }
 ```
@@ -130,23 +132,32 @@ export function startSpecial(world: World, fighter: Fighter, id: MoveId): void {
 **Red:** `src/render/hud.test.ts`
 
 ```ts
-  it('분노 게이지가 가득이면 깜빡이는 색이다', () => {
-    const lit = makeView({ now: 0 });
-    patch(lit.engine.fighters[1], { rage: 100 });
-    new Hud().draw(lit.view);
-    const dim = makeView({ now: 140 });
-    patch(dim.engine.fighters[1], { rage: 100 });
-    new Hud().draw(dim.view);
-    expect(lit.canvas.calls.length).toBeGreaterThan(0);
-    expect(dim.canvas.calls.length).toBeGreaterThan(0);
+  it('분노 게이지가 가득이면 시각에 따라 막대 색이 번갈아 바뀐다', () => {
+    const stopsAt = (now: number): string[] => {
+      const { view, canvas, engine } = makeView({ now });
+      patch(engine.fighters[1], { rage: 100 });
+      new Hud().draw(view);
+      return canvas.calls.flatMap(call =>
+        call[0] === 'set fillStyle' && typeof call[1] === 'object'
+          ? (call[1] as { stops: [number, string][] }).stops.map(stop => stop[1])
+          : [],
+      );
+    };
+    const orange = stopsAt(0);
+    const yellow = stopsAt(140);
+    expect(orange).toContain('#ff8a00');
+    expect(yellow).toContain('#ffb300');
+    expect(orange).not.toContain('#ffb300');
   });
 ```
 
 **Green:** `src/render/hud-bars.ts`
 
 ```ts
-function rageColors(rage: number, now: number): [string, string] {
-  if (rage < RAGE_MAX) return ['#ffb08a', '#e8473c'];
+function rageColors({ rage, now }: { rage: number; now: number }): [string, string] {
+  if (rage < RAGE_MAX) {
+    return ['#ffb08a', '#e8473c'];
+  }
   return ['#fff2a0', 0.5 + 0.5 * Math.sin(now / PULSE_PERIOD) > 0.5 ? '#ffb300' : '#ff8a00'];
 }
 ```
@@ -177,7 +188,7 @@ pnpm run check
 
 ### 맥스 모드 없음
 
-게이지가 가득 차도 별도의 상태 변화는 없다. 필요하면 나중에 더할 수 있다.
+게이지가 가득 차도 별도의 상태 변화는 없다.
 
 ### 컴퓨터 상대
 

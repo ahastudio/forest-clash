@@ -13,7 +13,6 @@
 ### Phase 1: Requirements & Discovery ✅
 
 - [x] 요구사항 정의(게이지 규칙, 필살기)
-- [x] KOF 98의 게이지 규칙 조사
 - [x] 스펙 문서 작성 (spec.md)
 
 ### Phase 2: Planning & Structure ✅

@@ -36,7 +36,7 @@
 ### User Flow
 
 ```text
-입력 → 상태 갱신 함수(neutral) → 의도 시도(뒤 대시 → 점프 → 앉기 → 달리기 → 걷기)
+입력 → 상태 갱신 함수(neutral) → 의도 시도(행동 고르기 → 뒤 대시 → 점프 → 앉기 → 달리기 → 걷기)
        ↓
 중력과 속도 적용(applyMovement) → 무대 정리(keepInStage)
 ```
@@ -83,8 +83,12 @@ Fighter
 
 ```ts
 function walkMotion(fighter: Fighter, direction: number): Partial<Fighter> {
-  if (direction > 0) return { state: 'walk', velocityX: fighter.face * WALK_FORWARD };
-  if (direction < 0) return { state: 'walk', velocityX: -fighter.face * WALK_BACK };
+  if (direction > 0) {
+    return { state: 'walk', velocityX: fighter.face * WALK_FORWARD };
+  }
+  if (direction < 0) {
+    return { state: 'walk', velocityX: -fighter.face * WALK_BACK };
+  }
   return { state: 'idle', velocityX: 0 };
 }
 
@@ -128,7 +132,7 @@ function takeOff(world: World, fighter: Fighter): void {
 }
 ```
 
-**Refactoring:** 착지 결과를 함수 표(`landingFor`)로 골라 조건문을 늘어놓지 않는다.
+**Refactoring:** 착지 결과를 함수 하나(`landingFor`)가 고르게 해 호출하는 쪽에 조건문을 늘어놓지 않는다.
 
 ### Step 3: Engine Layer - 대시와 구르기
 
@@ -152,7 +156,9 @@ function takeOff(world: World, fighter: Fighter): void {
 export function updateRoll(_world: World, fighter: Fighter): void {
   fighter.elapsed++;
   fighter.velocityX = fighter.elapsed <= ROLL_MOVING_FRAMES ? fighter.rollDirection * fighter.face * ROLL_SPEED : 0;
-  if (fighter.elapsed >= ROLL_FRAMES) stopAndRecover(fighter);
+  if (fighter.elapsed >= ROLL_FRAMES) {
+    stopAndRecover(fighter);
+  }
 }
 ```
 

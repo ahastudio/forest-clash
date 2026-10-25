@@ -13,7 +13,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/input-controls/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -24,7 +24,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/input-controls/plan.md`
 
 ### Phase 3: Implementation ✅
 

@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/mobile-controls/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -23,7 +23,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/mobile-controls/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -51,7 +51,7 @@
 1. 계산, 입력 전달, 요소 연결, 입력 장치 판별, 안내 문구 단위 테스트를 썼다.
 2. `pnpm run check`(타입 검사, 린트, 테스트, 커버리지 100%, 품질 점수)가 통과했다.
 3. 폰 크기(세로, 가로)에서 화면 배치를 확인했다.
-4. 실제 폰에서 조작을 확인했다.
+4. 실제 폰에서 조작감을 확인했고, 싸우는 중 캐릭터가 조작 영역에 가려지지 않는 것을 확인했다.
 
 **생성/수정 파일**:
 
@@ -73,7 +73,7 @@
 | 확대 막기 | 확대 동작, 터치 시작·이동, 길게 누르기 | 기본 동작 취소 | 그렇다(`attach.test.ts`) | ✅ |
 | 터치 안내 문구 | 터치 기기의 일시정지 화면 | Space 안내와 키보드 그림 없음 | 그렇다(`pause.test.ts`) | ✅ |
 | 입력 장치 판별 | `pointer: coarse` 여부 | touch 또는 keyboard | 그렇다(`kind.test.ts`) | ✅ |
-| 컴퓨터에서 숨김 | `index.html`의 스타일 | 기본은 숨기고 터치 기기 조건에서만 보임 | 그렇다(`markup.test.ts`) | ✅ |
+| 터치가 아닌 기기에서 숨김 | `index.html`의 스타일 | 기본은 숨기고 터치 기기 조건에서만 보임 | 그렇다(`markup.test.ts`) | ✅ |
 | 요소와 코드의 약속 | 코드가 찾는 요소와 뷰포트 | 모두 페이지에 있고 확대가 꺼져 있음 | 그렇다(`markup.test.ts`) | ✅ |
 
 ## Error Log

@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/round-flow/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/round-flow/plan.md`
 
 ### Phase 3: Implementation ✅
 

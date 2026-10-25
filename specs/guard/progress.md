@@ -13,7 +13,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/guard/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -23,7 +23,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/guard/plan.md`
 
 ### Phase 3: Implementation ✅
 

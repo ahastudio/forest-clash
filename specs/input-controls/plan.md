@@ -9,7 +9,7 @@
 
 1. 버튼 네 개와 방향 넷으로 두 사람이 한 키보드를 쓴다.
 2. 방향 두 개를 차례로 누르는 모션과 동시 입력, 잡기 입력을 낸다.
-3. 타이틀과 결과 화면은 공격 버튼으로 진행한다.
+3. 결과 화면은 공격 버튼으로 진행하고, 타이틀은 메뉴의 대전 방식을 마우스나 화면 터치로 눌러 시작한다.
 
 ## Critical Files
 
@@ -38,7 +38,7 @@
 
 ```text
 키를 누름 → controls.onKeyDown → Keyboard.press
-Game.update → Keyboard.read(0, 1) → engine.step([1P 입력, 2P 입력])
+Game.update → Keyboard.read(0)과 Keyboard.read(1) → engine.step([1P 입력, 2P 입력])
 ```
 
 ### Event Flow
@@ -85,9 +85,12 @@ Fighter
 **Green:** `src/input/keyboard.ts`
 
 ```ts
+  private isHeld(player: PlayerId, control: keyof Pad): boolean {
+    return this.down.has(KEY_MAP[player][control]);
+  }
+
   read(player: PlayerId): Pad {
-    const keys = KEY_MAP[player];
-    const held = (control: keyof Pad): boolean => this.down.has(keys[control]);
+    const held = (control: keyof Pad): boolean => this.isHeld(player, control);
     return {
       l: held('l'),
       r: held('r'),
@@ -137,17 +140,21 @@ function nextTap(frame: number, press: Press): Tap {
   return { double: pressedNow && frame - press.last <= DOUBLE_TAP_FRAMES, last: pressedNow ? frame : press.last };
 }
 
-function readDoubleTaps(world: World, fighter: Fighter): void {
-  const forward = nextTap(world.frame, {
+function forwardTap(world: World, fighter: Fighter): Tap {
+  return nextTap(world.frame, {
     held: forwardHeld(fighter),
     wasHeld: fighter.wasForwardHeld,
     last: fighter.lastForwardPress,
   });
-  const back = nextTap(world.frame, {
-    held: backHeld(fighter),
-    wasHeld: fighter.wasBackHeld,
-    last: fighter.lastBackPress,
-  });
+}
+
+function backTap(world: World, fighter: Fighter): Tap {
+  return nextTap(world.frame, { held: backHeld(fighter), wasHeld: fighter.wasBackHeld, last: fighter.lastBackPress });
+}
+
+function readDoubleTaps(world: World, fighter: Fighter): void {
+  const forward = forwardTap(world, fighter);
+  const back = backTap(world, fighter);
   const held = { wasForwardHeld: forwardHeld(fighter), wasBackHeld: backHeld(fighter) };
   patch(fighter, {
     ...held,
@@ -202,8 +209,8 @@ pnpm run check
 
 ### Manual Test
 
-1. `./dev-server.sh start` 뒤 http://localhost:58969/ 를 열어 I를 눌러 대전을 시작한다.
-2. 방향키와 I K O L로 1P가, W A S D와 R F T G로 2P가 움직이는지 본다(둘이서 대전은 타이틀에서 R을 눌러 시작).
+1. `./dev-server.sh start` 뒤 <http://localhost:58969/>를 열어 타이틀의 「혼자서 컴퓨터와」 버튼을 눌러 대전을 시작한다.
+2. 방향키와 I K O L로 1P가, W A S D와 R F T G로 2P가 움직이는지 본다(둘이서 대전은 타이틀 메뉴에서 「같은 컴퓨터에서 둘이서」를 골라 시작).
 3. ↓→ + I, →↓ + I로 특수기가 나가는지, Space·M·H가 동작하는지 본다.
 
 ## Considerations

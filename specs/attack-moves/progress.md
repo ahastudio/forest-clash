@@ -12,7 +12,7 @@
 
 **생성/수정 파일**:
 
-- `spec.md`
+- `specs/attack-moves/spec.md`
 
 ### Phase 2: Planning & Structure ✅
 
@@ -22,7 +22,7 @@
 
 **생성/수정 파일**:
 
-- `plan.md`
+- `specs/attack-moves/plan.md`
 
 ### Phase 3: Implementation ✅
 
@@ -79,7 +79,7 @@
 | Test | Input | Expected | Actual | Status |
 | ---- | ----- | -------- | ------ | ------ |
 | 발동 프레임 | 서서·앉아서 여덟 기술 | 정확히 start 프레임에 맞음 | 그렇다(`scenarios.test.ts`) | ✅ |
-| 막힘·맞음 이득 | 아홉 기술을 맞히고 막게 하고 재기 | 표의 이득과 같음 | 그렇다(`scenarios.test.ts`) | ✅ |
+| 막힘·맞음 이득 | 막힘은 아홉 기술, 맞음은 띄우는 앉아 강펀치를 뺀 여덟 기술을 재기 | 표의 이득과 같음 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 콤보 | 앉아 약펀치 → 앉아 약킥 → 대공 어퍼 | 서로 다른 기술 3개가 맞음 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 대공 어퍼 무적 | 앞 5프레임에 상대 약펀치 | 맞지 않음 | 그렇다(`scenarios.test.ts`) | ✅ |
 | 잡기 | 가까이서 앞+강펀치, 방어 중 앞+강펀치 | 방어 여부와 상관없이 잡힘 | 그렇다(`scenarios.test.ts`) | ✅ |

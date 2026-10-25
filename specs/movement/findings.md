@@ -26,22 +26,24 @@
 
 ### 코드 참조
 
-- 걷기와 서기: `src/engine/locomotion.ts:77`
-- 도약: `src/engine/locomotion.ts:98`
-- 착지 고르기: `src/engine/airborne.ts:52`
-- 벽과 겹침: `src/engine/stage.ts:23`
-- 뒤 대시 하단 넘기: `src/engine/boxes.ts:52`
+- 걷기와 서기: `src/engine/locomotion.ts:81`
+- 도약: `src/engine/locomotion.ts:104`
+- 착지 고르기: `src/engine/airborne.ts:56`
+- 벽과 겹침: `src/engine/stage.ts:37`
+- 뒤 대시 하단 넘기: `src/engine/boxes.ts:55`
 
 ## Technical Decisions
 
 | Decision | Rationale |
 | -------- | --------- |
 | 낮은 점프를 따로 둔다 | 위를 짧게 누르면 더 빠르고 반응하기 어려운 점프가 된다. |
-| 뒤 대시는 아래쪽만 비우고 무적을 두지 않는다 | 시작 3프레임 뒤부터 공중이라 하단 공격을 넘고 무적은 없다. |
+| 뒤 대시는 피격 상자의 아래쪽(26)만 비우고 무적을 두지 않는다 | 낮게 들어오는 하단 공격은 넘고, 무적이 없어 다른 공격은 맞게 하기 위해서다. |
 | 공중에서 방향을 바꾸지 못한다 | 도약을 시작할 때 정한 방향으로 날아간다. 공중 방어와 슈퍼 점프는 두지 않는다. |
-| 몸이 겹치면 벽에 붙은 쪽은 움직이지 않고 상대가 밀려난다 | 벽 앞이면 남은 밀림이 상대에게 간다. |
+| 몸이 겹치면 벽에 붙은 쪽은 움직이지 않고 상대가 겹친 만큼 밀려난다 | 캐릭터가 벽 밖으로 나가지 않게 하면서 몸이 겹치지 않게 하기 위해서다. |
 
 ## Issues Encountered
+
+기록할 문제 없음.
 
 ## Learnings
 
