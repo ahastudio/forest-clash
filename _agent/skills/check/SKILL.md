@@ -11,7 +11,7 @@ description: 테스트, 커버리지, 정적 분석, 품질 점수, 성능, 보�
 - 커밋하기 전, 배포하기 전.
 - 품질이 좋다거나 끝났다고 보고하기 전.
 - 의존성을 바꾼 직후, 빌드 설정(`vite.config.ts`, `vercel.json`)을 고친 직후.
-- 코드만 빠르게 확인할 때는 `pnpm run check`만 돌려도 된다(1~5번).
+- 코드만 빠르게 확인할 때는 `pnpm run check`만 돌려도 된다(1~5번과 11번).
 
 ## 실행
 
@@ -25,7 +25,7 @@ PATH에 pnpm이 없으면 `.nvmrc`의 Node 버전과 `packageManager`의 pnpm �
 
 | 순서 | 영역 | 명령 | 통과 기준 |
 | --- | --- | --- | --- |
-| 1 | 가드 | `pnpm run guard` | TypeScript 7이 아니고, 커버리지 임계값 네 개(문장·분기·함수·줄)가 모두 100이며 측정에서 빠진 경로가 테스트 파일과 테스트 도우미뿐이다 |
+| 1 | 가드 | `pnpm run guard` | TypeScript 7이 아니고, 커버리지 임계값 네 개(문장·분기·함수·줄)가 모두 100이며 측정에서 빠진 경로가 테스트 파일과 테스트 도우미뿐이고, 양식 파일(`*.example`)이 원본과 값만 다르며(원본이 없으면 그 쌍은 건너뛴다), 마크다운 문서에 굵은 글씨 소제목(FBPW 템플릿의 라벨 제외), 맨 주소, 제목 앞 빈 줄 누락이 없고, 스펙 문서(`specs/*/`)가 FBPW 템플릿(파일 여섯 개, 제목, 섹션 순서, Phase 이름, 고정 문구, 표 머리글, 라벨, 날짜)과 같다 |
 | 2 | 정적 분석: 타입 | `pnpm run typecheck` | `tsc` 오류 0건 |
 | 3 | 정적 분석: 린트·서식 | `pnpm run lint` | Biome 오류와 경고 0건 |
 | 4 | 테스트·커버리지 | `pnpm run coverage` | 테스트 전부 통과, 줄과 분기를 포함해 문장·분기·함수·줄 네 항목 모두 100퍼센트(`vite.config.ts`의 임계값 네 개가 모두 100) |
@@ -35,6 +35,8 @@ PATH에 pnpm이 없으면 `.nvmrc`의 Node 버전과 `packageManager`의 pnpm �
 | 8 | 성능: 예산 | `pnpm run budget` | 아래 「성능 예산」을 모두 지킨다 |
 | 9 | 보안: 정적 점검 | `pnpm run security` | 위반 0건 |
 | 10 | 보안: 의존성 | `pnpm run audit:dependencies` | 알려진 취약점 0건 |
+| 11 | 서버(Go) | `pnpm run check:server` | 서식, `go vet`, `staticcheck` 오류 0건, `-race` 테스트 전부 통과, 문장 커버리지와 분기 커버리지 모두 100퍼센트. `pnpm run check`에 들어 있어 5번 직후에 돈다 |
+| 12 | 인프라 | `pnpm run check:infra` | `Dockerfile`(hadolint)과 Ansible 절차(ansible-lint production 기준)가 지적 0건이고, `infra/README.md`의 nginx 설정이 `nginx -t`를 통과한다. `check:full`의 마지막에 돈다 |
 
 ## 성능 예산 (`_agent/checks/performance_budget.cjs`)
 
@@ -52,11 +54,37 @@ PATH에 pnpm이 없으면 `.nvmrc`의 Node 버전과 `packageManager`의 pnpm �
 ## 보안 점검 (`_agent/checks/security_scan.cjs`)
 
 - 게임 코드에 `eval`, `new Function`, `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`가 없다.
-- 게임 코드에 네트워크와 창 사이 통신 API(`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `postMessage`, `importScripts`)가 없다. 이 게임은 서버와 통신하지 않는다. 쓰게 되면 이 점검과 CSP를 함께 바꾼다.
-- 코드, 페이지, 그림, `vercel.json`에 외부 주소와 비밀값(키, 토큰, 비공개 키)이 없다. 예외는 `www.w3.org`, `openapi.vercel.sh`, 이 게임의 배포 주소 `forest-clash.a99.dev`(공유 미리보기 태그용), 방문 분석 도구 Clicky의 `static.getclicky.com`과 `in.getclicky.com`뿐이다(`ALLOWED_HOSTS`).
-- `index.html`의 CSP 메타와 `vercel.json`의 CSP가 `script-src`에 `'self'`와 `https://static.getclicky.com`만 허용하고 `unsafe-eval`을 허용하지 않는다.
+- 게임 코드에 네트워크와 창 사이 통신 API(`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `postMessage`, `importScripts`)가 없다. 서버와 통신하는 코드는 `src/online/web-socket.ts` 한 파일에서만 허용한다. 다른 곳에서 쓰게 되면 이 점검과 CSP를 함께 바꾼다.
+- 코드, 페이지, 그림, `vercel.json`에 외부 주소와 비밀값(키, 토큰, 비공개 키)이 없다. 예외는 `www.w3.org`, `openapi.vercel.sh`, 이 게임의 배포 주소 `forest-clash.a99.dev`(공유 미리보기 태그용), 방문 분석 도구 Clicky의 `static.getclicky.com`과 `in.getclicky.com`, 구글 로그인의 `accounts.google.com`뿐이다(`ALLOWED_HOSTS`).
+- `index.html`의 CSP 메타와 `vercel.json`의 CSP가 `script-src`에 `'self'`, `https://static.getclicky.com`, `https://accounts.google.com/gsi/client`만 허용하고 `unsafe-eval`을 허용하지 않는다.
 - `vercel.json`에 CSP(`frame-ancestors 'none'` 포함), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`가 모두 있다.
 - `.gitignore`가 `.env`를 막는다. 빌드 결과에 인라인 스크립트와 소스맵이 없다.
+
+## 서버 점검 (`_agent/checks/server_checks.cjs`)
+
+서버(`server/`, Go)에 게임 코드와 같은 기준을 적용한다. Go는 `go.mod`의 `go` 줄 버전으로 mise를 거쳐 실행하고, 도구는 설치하지 않고 버전을 고정해 `go run`으로 쓴다.
+
+| 항목 | 도구 | 통과 기준 |
+| --- | --- | --- |
+| 서식 | `gofmt -l .` | 출력이 비어 있다 |
+| 정적 분석 | `go vet ./...` | 오류 0건 |
+| 정적 분석 | `staticcheck@v0.8.2` | 오류 0건 |
+| 테스트 | `go test -race -count=1` | 전부 통과 |
+| 문장 커버리지 | `go tool cover -func` | 100.0퍼센트 |
+| 분기 커버리지 | `gobco@v1.3.4 -branch` | 모든 조건이 참과 거짓을 모두 겪는다(예: 182/182) |
+
+기준을 어기면 위반 줄과 위치를 출력하고 종료 코드 1로 끝난다.
+Go의 기본 도구는 분기를 재지 못하므로 분기 커버리지는 `gobco`로 잰다.
+
+## 인프라 점검 (`_agent/checks/infra_checks.cjs`)
+
+서버 배포 파일을 정적으로 점검한다. 도구는 설치하지 않고 이미지 다이제스트를 고정해 Docker로 실행하므로 Docker가 필요하다.
+
+| 대상 | 도구 | 통과 기준 |
+| --- | --- | --- |
+| `server/Dockerfile` | hadolint | 지적 0건 |
+| `infra/deploy.yml`, `infra/status.yml` | ansible-lint(production 기준) | 실패 0건, 경고 0건 |
+| `infra/README.md`의 nginx 설정 | `nginx -t`(업스트림은 검사할 때만 `127.0.0.1`로 바꾼다) | 통과 |
 
 ## 실패했을 때
 
@@ -69,11 +97,11 @@ PATH에 pnpm이 없으면 `.nvmrc`의 Node 버전과 `packageManager`의 pnpm �
 
 명령 출력을 그대로 옮긴다. 요약으로 바꾸지 않는다.
 
-- 단계별 종료 코드와 결과 한 줄(테스트 N건 통과, 커버리지 네 항목, 품질 총점, 번들 크기, 성능 예산 다섯 항목, 보안 위반 N건, 취약점 N건).
+- 단계별 종료 코드와 결과 한 줄(테스트 N건 통과, 커버리지 네 항목, 품질 총점, 서버 점검 위반 N건과 분기 커버리지 A/B, 번들 크기, 성능 예산 다섯 항목, 보안 위반 N건, 취약점 N건).
 - 「발견 N건, 고침 N건(증거), 못 고침 N건(사유)」.
 - 측정하지 못한 영역은 「측정하지 않음」으로 따로 적는다. 이 점검이 재지 못하는 것은 실제 기기의 첫 프레임 지연, 모바일 성능, 배포된 사이트의 응답 헤더다. 배포 뒤에는 브라우저 개발자 도구의 Network 탭에서 응답 헤더를 직접 확인한다.
 
 ## 이 스킬을 고칠 때
 
-- 점검 항목을 더하면 `package.json`의 `check:full`, 이 표, `_agent/rules/tech-stack.md`의 「확인 도구」 표, `README.md`의 「확인」을 같은 날 함께 고친다.
+- 점검 항목을 더하면 `package.json`의 `check`나 `check:full`, 이 표, `_agent/rules/tech-stack.md`의 「확인 도구」 표, `README.md`의 「확인」을 같은 날 함께 고친다.
 - 기준 숫자를 바꿀 때는 `performance_budget.cjs`의 `BUDGET`과 이 문서의 표를 함께 바꾸고, 올려야 하는 이유를 커밋 메시지에 적는다.

@@ -11,10 +11,12 @@ const root = process.cwd();
 const SOURCE_DIRECTORIES = ['src'];
 const DANGEROUS_API = /\b(eval|Function)\s*\(|\.(innerHTML|outerHTML)\b|insertAdjacentHTML|document\.write|dangerouslySetInnerHTML/;
 const NETWORK_API = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\b|navigator\.sendBeacon|postMessage/;
-const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com'];
+const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com', 'accounts.google.com'];
 const EXTERNAL_URL = new RegExp(`https?://(?!(?:${ALLOWED_HOSTS.map(host => host.replace(/\./g, '\\.')).join('|')})(?:[/;" ]|$))`);
-/** 스크립트를 받아 올 수 있는 곳: 같은 출처와 방문 분석 도구(Clicky)뿐이다. */
-const ALLOWED_SCRIPT_SOURCES = ["'self'", 'https://static.getclicky.com'];
+/** 서버와 통신하는 코드는 이 파일 한 곳에만 둔다. */
+const NETWORK_FILE = path.join('src', 'online', 'web-socket.ts');
+/** 스크립트를 받아 올 수 있는 곳: 같은 출처, 방문 분석 도구(Clicky), 구글 로그인뿐이다. */
+const ALLOWED_SCRIPT_SOURCES = ["'self'", 'https://static.getclicky.com', 'https://accounts.google.com/gsi/client'];
 const SECRET = /AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(api|secret|access)[_-]?(key|token)\s*[:=]\s*['"][^'"]{8,}/i;
 const REQUIRED_HEADERS = ['content-security-policy', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'strict-transport-security'];
 
@@ -46,7 +48,7 @@ function sourceViolations() {
   const files = SOURCE_DIRECTORIES.flatMap(filesUnder).filter(isGameSource);
   return files.flatMap(file => [
     ...findLines(file, DANGEROUS_API, '코드를 실행하거나 HTML을 주입하는 API'),
-    ...findLines(file, NETWORK_API, '네트워크 또는 창 사이 통신 API(이 게임은 쓰지 않는다)'),
+    ...(file === NETWORK_FILE ? [] : findLines(file, NETWORK_API, `네트워크 또는 창 사이 통신 API(서버 통신은 ${NETWORK_FILE}에서만 쓴다)`)),
   ]);
 }
 

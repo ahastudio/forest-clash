@@ -15,14 +15,16 @@
     "lint": "biome check --error-on-warnings .",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
-    "check": "pnpm run guard && pnpm run typecheck && pnpm run lint && pnpm run coverage && pnpm run score",
-    "guard": "node _agent/checks/check_typescript_version.cjs && node _agent/checks/check_coverage_thresholds.cjs",
+    "check": "pnpm run guard && pnpm run typecheck && pnpm run lint && pnpm run coverage && pnpm run score && pnpm run check:server",
+    "check:server": "node _agent/checks/server_checks.cjs",
+    "check:infra": "node _agent/checks/infra_checks.cjs",
+    "guard": "node _agent/checks/check_typescript_version.cjs && node _agent/checks/check_coverage_thresholds.cjs && node _agent/checks/check_examples.cjs && node _agent/checks/check_markdown.cjs && node _agent/checks/check_fbpw.cjs",
     "score": "node _agent/checks/quality_score.cjs src --min 95",
     "bench": "vitest bench --run --outputJson=coverage/bench.json",
     "budget": "node _agent/checks/performance_budget.cjs",
     "security": "node _agent/checks/security_scan.cjs",
     "audit:dependencies": "pnpm audit --audit-level low",
-    "check:full": "pnpm run check && pnpm run build && pnpm run bench && pnpm run budget && pnpm run security && pnpm run audit:dependencies"
+    "check:full": "pnpm run check && pnpm run build && pnpm run bench && pnpm run budget && pnpm run security && pnpm run audit:dependencies && pnpm run check:infra"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

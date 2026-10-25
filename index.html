@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="game-version" content="__GAME_VERSION__">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://static.getclicky.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: in.getclicky.com; connect-src 'self' in.getclicky.com ws: wss:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://static.getclicky.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob: in.getclicky.com; connect-src 'self' in.getclicky.com https://accounts.google.com/gsi/ wss: ws://localhost:*; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>숲속대전 Forest Clash</title>
 <meta name="description" content="고양이와 새싹이 맞붙는 귀여운 2D 대전 격투 게임">
 <meta property="og:type" content="website">
@@ -31,7 +31,7 @@
     .touch .stick{position:fixed;left:calc(16px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));width:140px;height:140px;border-radius:50%;background:#ffffff26;border:2px solid #ffffff59;pointer-events:auto;touch-action:manipulation;touch-action:none}
     .touch .knob{position:absolute;left:28%;top:28%;width:44%;height:44%;border-radius:50%;background:#ffffffb3}
     .touch .buttons{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:12px}
-    .touch button{width:64px;height:64px;padding:0;border-radius:50%;border:2px solid #ffffff66;background:#ffffff26;color:#fff;font:700 13px/1 inherit;pointer-events:auto;touch-action:manipulation;touch-action:none}
+    .touch button{cursor:pointer;width:64px;height:64px;padding:0;border-radius:50%;border:2px solid #ffffff66;background:#ffffff26;color:#fff;font:700 13px/1 inherit;pointer-events:auto;touch-action:manipulation;touch-action:none}
     .touch button[data-pressed]{background:#ffffff80}
     .touch .pause{position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:44px;height:44px;font-size:16px}
   }

@@ -1,9 +1,14 @@
 import { create as createAi, roundLevel } from './ai';
 import { Sound } from './audio/sound';
-import type { PadInput, Phase } from './engine';
-import { createEngine } from './engine';
+import { TitleDemo } from './demo';
+import type { Inputs, PadInput, Phase } from './engine';
+import { constants, createEngine } from './engine';
 import { Keyboard } from './input/keyboard';
 import type { InputKind } from './input/kind';
+import type { Point, StartChoice } from './menu';
+import { TitleMenu } from './menu';
+import { encodePad } from './online/bits';
+import type { OnlineSession } from './online/session';
 import type { Effects } from './render/effects';
 import { GUIDES } from './render/guide';
 import { Reactions } from './render/reactions';
@@ -17,13 +22,23 @@ const advanceBattle = (effects: Effects): void => effects.advanceBattle();
 
 /** 단계마다 알갱이를 움직이는 방법. 타이틀에서는 움직이지 않고, 결과 화면에서는 천천히 떨어진다. */
 const EFFECT_ADVANCERS: Record<Phase, (effects: Effects) => void> = {
-  title: effects => effects.advanceTitle(),
+  title: advanceBattle,
   intro: advanceBattle,
   fight: advanceBattle,
   ko: advanceBattle,
   time: advanceBattle,
   over: effects => effects.advanceResult(),
 };
+
+const NO_INPUT: Inputs = [{}, {}];
+
+/** 이번 프레임에 화면을 눌렀는가, 눌렀다면 타이틀 메뉴의 어느 줄이었는가. */
+interface Tap {
+  pressed: boolean;
+  choice: StartChoice | null;
+}
+
+const NO_TAP: Tap = { pressed: false, choice: null };
 
 function contextOf(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const g = canvas.getContext('2d');
@@ -46,15 +61,33 @@ export class Game {
   showBoxes = false;
   /** 안내 문구가 따르는 입력 장치. 폰이면 시작할 때 touch로 바꾼다. */
   inputKind: InputKind = 'keyboard';
+  readonly menu = new TitleMenu();
+  /** 타이틀 뒤에서 가볍게 싸우는 캐릭터 둘. 소리를 내지 않도록 장치를 열지 않은 소리를 쓴다. */
+  readonly demo = new TitleDemo(this.scene.effects, new Sound());
+  /** 온라인 대전 흐름. 없으면 온라인 대전은 쓸 수 없다. */
+  online: OnlineSession | null = null;
+  /** 마지막으로 처리하지 않은 화면 누름. 프레임마다 한 번 꺼내 쓴다. */
+  private tap: Tap = NO_TAP;
+  /** 온라인 대전을 시작해 아직 타이틀로 돌아오지 않았는가. */
+  private inOnlineMatch = false;
+  /** 컴퓨터와, 둘이서 대전은 엔진이 1P 또는 2P의 버튼 입력으로 시작하므로 그 입력을 만들어 준다. */
+  private readonly starters: Record<StartChoice, () => Inputs> = {
+    cpu: () => [{ A: true }, {}],
+    '2p': () => [{}, { A: true }],
+    online: () => {
+      this.online?.start();
+      return NO_INPUT;
+    },
+  };
 
   private readonly g: CanvasRenderingContext2D;
 
   constructor(
-    canvas: HTMLCanvasElement,
+    private readonly canvas: HTMLCanvasElement,
     private readonly version: string,
     private readonly sprites: Sprites = new Sprites(),
   ) {
-    this.g = contextOf(canvas);
+    this.g = contextOf(this.canvas);
     this.engine.toTitle();
   }
 
@@ -65,34 +98,171 @@ export class Game {
     return !waiting && mode === 'cpu' ? this.cpu(1) : this.keyboard.read(1);
   }
 
-  /** 시뮬레이션을 한 프레임 진행한다. 일시정지 중에는 멈춘다. */
-  update(): void {
-    if (this.paused) {
+  /** 마우스나 손가락이 화면을 눌렀다. 타이틀에서 메뉴의 어느 줄인지 읽는다. */
+  pointerDown(point: Point): void {
+    this.tap = { pressed: true, choice: this.menu.press(point) };
+  }
+
+  /** 쌓인 화면 누름을 꺼내고 비운다. */
+  private takeTap(): Tap {
+    const tap = this.tap;
+    this.tap = NO_TAP;
+    return tap;
+  }
+
+  /** 타이틀에서는 누른 메뉴를 엔진이 받는 입력으로 바꾸고, 그 밖의 단계에서는 사람의 입력을 그대로 쓴다. */
+  private localInputs(): Inputs {
+    const pads: Inputs = [this.keyboard.read(0), this.secondInput()];
+    const tap = this.takeTap();
+    return this.engine.phase === 'title' ? this.titleInputs(tap) : pads;
+  }
+
+  /** 온라인 접속 중이면 화면을 눌러 취소하고, 아니면 누른 방식으로 시작한다. */
+  private titleInputs(tap: Tap): Inputs {
+    if (this.online?.busy) {
+      return this.cancelOnline(tap);
+    }
+    const { choice } = tap;
+    const ready = choice !== null && this.engine.phaseTime > constants.TITLE_INPUT_DELAY;
+    return ready ? this.starters[choice]() : NO_INPUT;
+  }
+
+  private cancelOnline(tap: Tap): Inputs {
+    if (tap.pressed) {
+      this.online?.cancel();
+    }
+    return NO_INPUT;
+  }
+
+  /** 시뮬레이션을 한 프레임 진행하고 그 사건을 화면 반응으로 잇는다. */
+  private stepWith(inputs: Inputs): void {
+    this.engine.step(inputs);
+    this.reactions.handle();
+  }
+
+  /** 온라인 대전 중에는 상대 입력이 모일 때까지 기다리느라 프레임을 진행하지 못할 수 있다. */
+  private stepOnline(session: OnlineSession): boolean {
+    const inputs = session.nextInputs();
+    if (inputs) {
+      this.stepWith(inputs);
+      this.afterOnlineStep(session);
+    }
+    return inputs !== null;
+  }
+
+  /** 진행한 프레임 뒤의 온라인 일: 타이틀로 돌아왔으면 마치고, 아니면 내 입력을 보내고 끝난 판의 결과를 알린다. */
+  private afterOnlineStep(session: OnlineSession): void {
+    if (this.engine.phase === 'title') {
+      session.finish();
       return;
     }
-    this.engine.step([this.keyboard.read(0), this.secondInput()]);
-    this.reactions.handle();
+    session.submit(encodePad(this.keyboard.read(0)));
+    this.reportResult(session);
+  }
+
+  private reportResult(session: OnlineSession): void {
+    const { phase, matchWinner } = this.engine;
+    if (phase === 'over' && matchWinner !== null) {
+      session.reportResult(matchWinner);
+    }
+  }
+
+  /** 오류나 상대의 이탈로 온라인 대전이 끝났는데 판이 남아 있으면 타이틀로 돌아간다. */
+  private leaveEndedOnlineMatch(): void {
+    if (this.inOnlineMatch && !this.online?.playing) {
+      this.inOnlineMatch = false;
+      this.engine.toTitle();
+    }
+  }
+
+  /** 시뮬레이션을 한 프레임 진행한다. 일시정지 중에는 멈춘다. 상대 입력을 기다리느라 진행하지 못했으면 false다. */
+  update(): boolean {
+    if (this.paused) {
+      return true;
+    }
+    this.leaveEndedOnlineMatch();
+    this.online?.measurePing();
+    return this.runFrame();
+  }
+
+  /** 실제 대전, 타이틀 뒤의 배경 대전, 화면 효과를 차례로 한 프레임씩 진행한다. 기다리는 중이면 아무것도 진행하지 않고 false다. */
+  private runFrame(): boolean {
+    if (!this.stepFrame()) {
+      return false;
+    }
+    this.stepDemo();
     this.advanceEffects();
+    return true;
+  }
+
+  /** 타이틀이 나와 있는 동안에만 배경의 대전을 진행한다. */
+  private stepDemo(): void {
+    if (this.engine.phase === 'title') {
+      this.demo.step();
+    }
+  }
+
+  /** 온라인 대전 중이면 상대와 맞춰, 아니면 이 컴퓨터의 입력으로 한 프레임 진행한다. */
+  private stepFrame(): boolean {
+    const session = this.online;
+    if (session?.playing) {
+      return this.stepOnline(session);
+    }
+    this.stepWith(this.localInputs());
+    return true;
+  }
+
+  /** 온라인 상대가 정해졌을 때 새 판을 시작한다. 내 입력이 들어갈 자리는 온라인 흐름이 알고 있다. */
+  startOnlineMatch(): void {
+    this.paused = false;
+    this.inOnlineMatch = true;
+    this.engine.newMatch('2p');
   }
 
   advanceEffects(): void {
     EFFECT_ADVANCERS[this.engine.phase](this.scene.effects);
   }
 
+  /** 타이틀에서 마우스가 버튼 위에 있으면 커서를 손가락 모양으로, 그 밖에는 기본 모양으로 바꾼다. */
+  private applyCursor(): void {
+    const overButton = this.engine.phase === 'title' && this.menu.selected !== null;
+    this.canvas.style.cursor = overButton ? 'pointer' : 'default';
+  }
+
   /** 지금 상태를 캔버스에 그린다. now는 깜빡임에 쓰는 현재 시각(밀리초)이다. */
   render(now: number): void {
-    const view = { g: this.g, engine: this.engine, sprites: this.sprites, now, guide: GUIDES[this.inputKind] };
-    this.scene.draw(view, { paused: this.paused, showBoxes: this.showBoxes, version: this.version });
+    this.applyCursor();
+    const guide = GUIDES[this.inputKind];
+    const view = {
+      g: this.g,
+      engine: this.engine,
+      sprites: this.sprites,
+      now,
+      guide,
+      menu: this.menu,
+      notice: this.notice(),
+      ping: this.online?.pingMilliseconds ?? null,
+    };
+    const world = this.engine.phase === 'title' ? this.demo.engine : this.engine;
+    this.scene.draw(view, { world, paused: this.paused, showBoxes: this.showBoxes, version: this.version });
   }
 
-  /** 일시정지를 켜고 끈다. */
+  /** 화면에 보일 온라인 상황 한 줄. 대전 중에는 보이지 않고, 타이틀에서는 마지막 상황을 보인다. */
+  private notice(): string {
+    const session = this.online;
+    return session && !session.playing && this.engine.phase === 'title' ? session.status : '';
+  }
+
+  /** 일시정지를 켜고 끈다. 온라인 대전은 상대와 같이 진행하므로 멈출 수 없다. */
   togglePause(): void {
-    this.paused = !this.paused;
+    if (!this.online?.playing) {
+      this.paused = !this.paused;
+    }
   }
 
-  /** 대전 중에 창을 벗어나면 일시정지한다. */
+  /** 대전 중에 창을 벗어나면 일시정지한다. 온라인 대전은 제외한다. */
   pauseIfFighting(): void {
-    if (this.engine.phase === 'fight') {
+    if (this.engine.phase === 'fight' && !this.online?.playing) {
       this.paused = true;
     }
   }

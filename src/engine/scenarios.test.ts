@@ -186,9 +186,6 @@ describe('막힘과 후딜', () => {
         if (recovering && rand() < 0.9) {
           return { A: 1 };
         }
-        if (duel.R.state === 'thrown' && duel.R.elapsed <= 9) {
-          return { C: 1 };
-        }
         return {
           ...(distance < 150 ? { r: 1 } : {}),
           ...(duel.L.state === 'attack' && move?.kind === 'low' ? { d: 1 } : {}),

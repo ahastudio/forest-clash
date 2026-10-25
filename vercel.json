@@ -8,11 +8,11 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'self' https://static.getclicky.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: in.getclicky.com; connect-src 'self' in.getclicky.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'" },
+        { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'self' https://static.getclicky.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob: in.getclicky.com; connect-src 'self' in.getclicky.com https://accounts.google.com/gsi/ wss: ws://localhost:*; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" }
       ]
     },

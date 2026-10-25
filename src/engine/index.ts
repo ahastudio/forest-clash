@@ -1,7 +1,7 @@
 import { activeHitbox, hurtboxes } from './boxes';
 import { MAX_SEPARATION, THROW_RANGE, WALL_L, WALL_R } from './constants';
 import type { Inputs } from './flow';
-import { anyButton, newMatch, step, toTitle } from './flow';
+import { anyButton, newMatch, step, TITLE_INPUT_DELAY, toTitle } from './flow';
 import { MOVE_LIST, MOVES } from './moves';
 import type { Box, Fighter, GameEvent, GameMode, World } from './types';
 import { newWorld } from './world';
@@ -13,7 +13,7 @@ export type { Move, MoveId, MoveKind } from './moves';
 export type * from './types';
 export { MOVE_LIST, MOVES };
 
-export const constants = { WALL_L, WALL_R, MAX_SEPARATION, THROW_RANGE } as const;
+export const constants = { WALL_L, WALL_R, MAX_SEPARATION, THROW_RANGE, TITLE_INPUT_DELAY } as const;
 
 export interface Engine extends World {
   newMatch(mode: GameMode): void;

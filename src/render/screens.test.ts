@@ -1,26 +1,62 @@
 import { describe, expect, it } from 'vitest';
+import { MENU_BUTTONS } from '../menu';
 import { patch } from '../patch';
 import { makeView } from '../testing/canvas';
-import { drawIntro, drawResult, drawRoundEnd, drawTitle } from './screens';
+import { SCREEN_WIDTH } from './layout';
+import { drawIntro, drawNotice, drawPing, drawResult, drawRoundEnd, drawTitle } from './screens';
 
 describe('타이틀', () => {
-  it('로고와 시작 안내가 있고 안내는 깜빡인다', () => {
-    const on = makeView();
-    patch(on.engine, { phaseTime: 0 });
-    drawTitle(on.view);
-    expect(on.canvas.of('drawImage')).toHaveLength(1);
-    expect(on.canvas.texts()).toContain('아무 공격 버튼이나 눌러 시작');
-    const off = makeView();
-    patch(off.engine, { phaseTime: 30 });
-    drawTitle(off.view);
-    expect(off.canvas.texts()).not.toContain('아무 공격 버튼이나 눌러 시작');
-    expect(off.canvas.texts().join('')).toContain('조작법');
+  it('로고와 대전 방식 버튼 세 개가 있고 글자는 버튼 안에 있다', () => {
+    const { view, canvas } = makeView();
+    drawTitle(view);
+    expect(canvas.of('drawImage')).toHaveLength(1);
+    expect(canvas.texts()).toEqual(
+      expect.arrayContaining(['혼자서', '컴퓨터와', '같은 컴퓨터에서', '둘이서', '온라인', '대전']),
+    );
+    expect(canvas.texts().join('')).toContain('Space: 조작법');
+    expect(canvas.of('roundRect').map(([x]) => x)).toEqual(MENU_BUTTONS.map(button => button.rect.x));
+  });
+
+  it('버튼의 바탕은 마우스를 올린 버튼만 다르다', () => {
+    const fills = (hover: boolean): unknown[] => {
+      const { view, canvas } = makeView();
+      if (hover) {
+        view.menu.hover({ x: MENU_BUTTONS[1]?.rect.x ?? 0, y: MENU_BUTTONS[1]?.rect.y ?? 0 });
+      }
+      drawTitle(view);
+      let fillStyle: unknown;
+      return canvas.calls.flatMap(([name, value]) => {
+        fillStyle = name === 'set fillStyle' ? value : fillStyle;
+        return name === 'fill' ? [fillStyle] : [];
+      });
+    };
+    expect(new Set(fills(false)).size).toBe(1);
+    const hovered = fills(true);
+    expect(new Set(hovered).size).toBe(2);
+    expect(hovered[1]).not.toBe(hovered[0]);
+    expect(hovered[0]).toBe(hovered[2]);
+  });
+
+  it('온라인 상황이 있으면 메뉴 아래에 보이고, 없으면 그리지 않는다', () => {
+    const shown = makeView({ notice: '고양이 2승 1패 · 상대를 찾는 중' });
+    drawTitle(shown.view);
+    expect(shown.canvas.texts()).toContain('고양이 2승 1패 · 상대를 찾는 중');
+    const hidden = makeView();
+    drawTitle(hidden.view);
+    expect(hidden.canvas.texts()).toHaveLength(7);
   });
 
   it('터치 기기에서는 Space 대신 일시정지 버튼을 안내한다', () => {
     const { view, canvas } = makeView({ input: 'touch' });
     drawTitle(view);
-    expect(canvas.texts()).toContain('오른쪽 위 ⏸ 버튼: 조작법과 일시정지');
+    expect(canvas.texts().join('')).toContain('⏸: 조작법');
+    expect(canvas.texts().join('')).not.toContain('Space');
+  });
+
+  it('터치 기기에서는 Space 대신 일시정지 버튼을 안내한다', () => {
+    const { view, canvas } = makeView({ input: 'touch' });
+    drawTitle(view);
+    expect(canvas.texts()).toContain('화면의 메뉴를 눌러 선택   오른쪽 위 ⏸: 조작법');
     expect(canvas.texts().join('')).not.toContain('Space');
   });
 
@@ -87,5 +123,54 @@ describe('결과 화면', () => {
     patch(blinkOff.engine, { matchWinner: 1, phaseTime: 165 });
     drawResult(blinkOff.view);
     expect(blinkOff.canvas.texts()).toEqual(['2P 승리!']);
+  });
+});
+
+describe('핑 표시', () => {
+  const colorOf = (ping: number): unknown => {
+    const { view, canvas } = makeView({ ping });
+    drawPing(view);
+    expect(canvas.texts()).toEqual([`Ping ${ping}ms`]);
+    return canvas.last('fillStyle');
+  };
+
+  it('핑이 없으면 아무것도 그리지 않는다', () => {
+    const { view, canvas } = makeView();
+    drawPing(view);
+    expect(canvas.texts()).toEqual([]);
+  });
+
+  it('화면 오른쪽 아래에 오른쪽 정렬로 그린다', () => {
+    const { view, canvas } = makeView({ ping: 38 });
+    drawPing(view);
+    expect(canvas.of('fillText').at(-1)).toEqual(['Ping 38ms', SCREEN_WIDTH - 16, 515]);
+  });
+
+  it('핑이 낮으면 초록, 보통이면 금색, 높으면 빨강으로 그린다', () => {
+    expect([colorOf(60), colorOf(61), colorOf(120), colorOf(121)]).toEqual([
+      '#7be495',
+      '#ffd54a',
+      '#ffd54a',
+      '#ff7b7b',
+    ]);
+  });
+});
+
+describe('온라인 상황 안내', () => {
+  it('대전 중에는 화면 아래에 한 줄로 보인다', () => {
+    const { view, canvas, engine } = makeView({ notice: '상대를 기다리는 중' });
+    patch(engine, { phase: 'fight' });
+    drawNotice(view);
+    expect(canvas.texts()).toEqual(['상대를 기다리는 중']);
+  });
+
+  it('내용이 없거나 타이틀이면 그리지 않는다', () => {
+    const empty = makeView();
+    patch(empty.engine, { phase: 'fight' });
+    drawNotice(empty.view);
+    expect(empty.canvas.texts()).toEqual([]);
+    const title = makeView({ notice: '안내' });
+    drawNotice(title.view);
+    expect(title.canvas.texts()).toEqual([]);
   });
 });

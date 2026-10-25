@@ -19,7 +19,11 @@ afterEach(() => {
 describe('시작', () => {
   it('캔버스와 버전을 찾아 게임을 시작하고 첫 화면을 그린다', async () => {
     const { g, of } = fakeCanvas();
-    const canvas = { getContext: () => g };
+    const canvas = {
+      getContext: () => g,
+      style: {},
+      addEventListener: (type: string) => listened.push(`canvas:${type}`),
+    };
     const frames: (() => void)[] = [];
     const listened: string[] = [];
     vi.stubGlobal('document', {
@@ -39,7 +43,15 @@ describe('시작', () => {
       },
     );
     await import('./main');
-    expect(listened).toEqual(['win:keydown', 'win:keyup', 'win:blur', 'doc:visibilitychange', 'doc:gesturestart']);
+    expect(listened).toEqual([
+      'win:keydown',
+      'win:keyup',
+      'win:blur',
+      'doc:visibilitychange',
+      'canvas:pointermove',
+      'canvas:pointerdown',
+      'doc:gesturestart',
+    ]);
     expect(frames).toHaveLength(1);
     expect(of('fillRect').length).toBeGreaterThan(0);
   });
@@ -47,7 +59,7 @@ describe('시작', () => {
   it('버전 정보가 없어도 시작한다', async () => {
     const { g } = fakeCanvas();
     vi.stubGlobal('document', {
-      getElementById: () => ({ getContext: () => g }),
+      getElementById: () => ({ getContext: () => g, style: {}, addEventListener: () => undefined }),
       querySelector: findElement(null),
       addEventListener: () => undefined,
     });

@@ -71,15 +71,22 @@ describe('체력 막대와 시계', () => {
     }
   });
 
-  it('분노 게이지가 가득이면 어느 시각에도 그려진다', () => {
-    const lit = makeView({ now: 0 });
-    patch(lit.engine.fighters[1], { rage: 100 });
-    new Hud().draw(lit.view);
-    const dim = makeView({ now: 140 });
-    patch(dim.engine.fighters[1], { rage: 100 });
-    new Hud().draw(dim.view);
-    expect(lit.canvas.calls.length).toBeGreaterThan(0);
-    expect(dim.canvas.calls.length).toBeGreaterThan(0);
+  it('분노 게이지가 가득이면 시각에 따라 막대 색이 번갈아 바뀐다', () => {
+    const stopsAt = (now: number): string[] => {
+      const { view, canvas, engine } = makeView({ now });
+      patch(engine.fighters[1], { rage: 100 });
+      new Hud().draw(view);
+      return canvas.calls.flatMap(call =>
+        call[0] === 'set fillStyle' && typeof call[1] === 'object'
+          ? (call[1] as { stops: [number, string][] }).stops.map(stop => stop[1])
+          : [],
+      );
+    };
+    const orange = stopsAt(0);
+    const yellow = stopsAt(140);
+    expect(orange).toContain('#ff8a00');
+    expect(yellow).toContain('#ffb300');
+    expect(orange).not.toContain('#ffb300');
   });
 
   it('이긴 판 수만큼 동그라미가 채워진다', () => {

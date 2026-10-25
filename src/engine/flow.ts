@@ -12,7 +12,7 @@ const INTRO_FRAMES = 110;
 const FIGHT_CALL_FRAME = 45;
 const TIME_UP_FRAMES = 160;
 const ROUNDS_TO_WIN = 2;
-const TITLE_INPUT_DELAY = 20;
+export const TITLE_INPUT_DELAY = 20;
 const RESULT_INPUT_DELAY = 120;
 
 export type Inputs = readonly [Partial<PadInput>, Partial<PadInput>];

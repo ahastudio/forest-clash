@@ -1,4 +1,4 @@
-import type { Phase } from '../engine';
+import type { Engine, Phase } from '../engine';
 import { fillScreen, verticalGradient, withState } from './canvas';
 import { Effects } from './effects';
 import { drawDebugBoxes, drawFighter } from './fighters';
@@ -6,10 +6,12 @@ import { Hud } from './hud';
 import type { Ctx } from './layout';
 import { CAMERA_X, CAMERA_Y, CAMERA_ZOOM, CENTER_X, CENTER_Y, SCREEN_HEIGHT, SCREEN_WIDTH } from './layout';
 import { drawPause } from './pause';
-import { drawIntro, drawResult, drawRoundEnd, drawTitle } from './screens';
+import { drawIntro, drawNotice, drawPing, drawResult, drawRoundEnd, drawTitle } from './screens';
 import type { View } from './view';
 
 interface SceneFlags {
+  /** 캐릭터를 그릴 엔진. 타이틀에서는 배경에서 싸우는 연습용 엔진이고, 그 밖에는 실제 엔진이다. */
+  world: Engine;
   paused: boolean;
   showBoxes: boolean;
   version: string;
@@ -109,10 +111,17 @@ export class Scene {
   draw(view: View, flags: SceneFlags): void {
     withState(view.g, () => this.drawScene(view, flags));
     drawVignette(view.g);
-    OVERLAYS[view.engine.phase](this, view);
+    this.drawOverlays(view);
     if (flags.paused) {
       drawPause(view, flags.version);
     }
+  }
+
+  /** 단계에 맞는 덮는 화면과 온라인 상황 한 줄, 핑. */
+  private drawOverlays(view: View): void {
+    OVERLAYS[view.engine.phase](this, view);
+    drawNotice(view);
+    drawPing(view);
   }
 
   /** 하늘, 배경, 그리고 카메라로 바라본 세계(캐릭터, 판정 상자, 효과). */
@@ -121,7 +130,7 @@ export class Scene {
     drawBackground(view);
     withState(view.g, () => {
       applyCamera(view.g);
-      drawActors(view, flags);
+      drawActors({ ...view, engine: flags.world }, flags);
       this.effects.draw(view.g, flags);
     });
   }

@@ -6,7 +6,7 @@ afterEach(() => vi.useRealTimers());
 function setup(speed = 1) {
   let clock = 1000;
   const frames: (() => void)[] = [];
-  const game = { update: vi.fn(), render: vi.fn() };
+  const game = { update: vi.fn(() => true), render: vi.fn() };
   const host = { now: () => clock, requestFrame: (callback: () => void) => frames.push(callback) };
   const loop = new FixedStepLoop(host, game, speed);
   return { loop, game, frames, advance: (ms: number) => (clock += ms) };
@@ -54,6 +54,39 @@ describe('고정 시간 간격 반복', () => {
     frames[0]?.();
     expect(game.render).toHaveBeenCalledTimes(2);
     expect(frames).toHaveLength(2);
+  });
+
+  it('진행하지 못한 프레임의 시간은 돌려받아 입력이 오면 따라잡는다', () => {
+    const { loop, game, advance } = setup();
+    game.update.mockReturnValueOnce(false);
+    advance(34);
+    loop.tick();
+    expect(game.update).toHaveBeenCalledTimes(1);
+    advance(17);
+    loop.tick();
+    expect(game.update).toHaveBeenCalledTimes(4);
+  });
+
+  it('기다리는 동안은 그 틱에 더 시도하지 않는다', () => {
+    const { loop, game, advance } = setup();
+    game.update.mockReturnValue(false);
+    advance(100);
+    loop.tick();
+    expect(game.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('오래 기다려도 돌려받는 시간은 한도까지만 쌓인다', () => {
+    const { loop, game, advance } = setup();
+    game.update.mockReturnValue(false);
+    for (let tick = 0; tick < 50; tick++) {
+      advance(100);
+      loop.tick();
+    }
+    game.update.mockReturnValue(true);
+    game.update.mockClear();
+    advance(1);
+    loop.tick();
+    expect(game.update).toHaveBeenCalledTimes(4);
   });
 
   it('그릴 때는 현재 시각을 넘긴다', () => {

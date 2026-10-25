@@ -42,3 +42,16 @@
 
 - 테스트가 실패하면 코드의 결함인지 테스트가 낡았는지를 먼저 가른다.
 - 회귀 테스트의 기대값(`toMatchInlineSnapshot`)은 동작이 바뀐 이유를 설명할 수 있을 때만 `-u`로 갱신한다.
+
+## 서버(Go)
+
+게임 코드와 같은 기준을 서버(`server/`)에도 적용한다. `pnpm run check:server`(`_agent/checks/server_checks.cjs`)가 `pnpm run check`에서 돈다.
+
+- 서식(`gofmt -l`)이 비어 있고, `go vet`과 `staticcheck`이 오류 0건이다.
+- `go test -race`가 모두 통과하고 문장 커버리지가 100퍼센트다.
+- 분기 커버리지도 100퍼센트다. Go의 기본 도구는 분기를 재지 못하므로 `gobco -branch`로 잰다. 조건마다 참과 거짓이 모두 시험에서 나와야 한다.
+- 도구는 설치하지 않고 버전을 고정해 `go run`으로 실행한다(`staticcheck@v0.8.2`, `gobco@v1.3.4`). `go install`은 쓰지 않는다. mise의 Go 설치 폴더에 실행 파일이 남는다.
+- 도달할 수 없는 가지는 코드에서 없앤다. 시험하려고 패키지 전역 값을 바꾸지 않는다. 서버가 필드로 받게 하고 시험에서 값을 넣는다(`Server`의 `helloLimit`, `pingInterval`, `pingTimeout`).
+- `main`은 종료 방법(`exit`)을 바꿀 수 있게 두고, 시험이 설정 오류, 서버를 켤 수 없는 경우, 종료 신호를 받고 끝나는 경우를 직접 확인한다.
+- 불안정한 시험을 막으려고 고친 뒤에는 `go test -race -count=1`을 여러 번 반복해 모두 통과하는지 본다.
+- 서버 배포 파일(`server/Dockerfile`, `infra/*.yml`, `infra/README.md`의 nginx 설정)은 `pnpm run check:infra`가 정적 분석한다. 지적을 고치고, 규칙을 끄거나 예외로 돌려 통과시키지 않는다.

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { attachControls } from './controls';
+import { attachControls, attachMenuPointer } from './controls';
 import type { Game } from './game';
 
 type Listener = (event: never) => void;
@@ -80,5 +80,33 @@ describe('조작 연결', () => {
     doc.hidden = true;
     (listeners.get('doc:visibilitychange') as () => void)();
     expect(game.pauseIfFighting).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('메뉴 포인터 연결', () => {
+  function pointerSetup() {
+    const listeners = new Map<string, (event: unknown) => void>();
+    const canvas = {
+      width: 960,
+      height: 540,
+      getBoundingClientRect: () => ({ left: 100, top: 50, width: 480, height: 270 }),
+      addEventListener: (type: string, fn: (event: unknown) => void) => listeners.set(type, fn),
+    };
+    const game = { menu: { hover: vi.fn() }, sound: { init: vi.fn() }, pointerDown: vi.fn() };
+    attachMenuPointer(game as unknown as Game, canvas as unknown as HTMLCanvasElement);
+    return { game, listeners };
+  }
+
+  it('마우스를 올리면 캔버스 그림 좌표로 바꿔 메뉴에 알린다', () => {
+    const { game, listeners } = pointerSetup();
+    listeners.get('pointermove')?.({ clientX: 340, clientY: 185 });
+    expect(game.menu.hover).toHaveBeenCalledWith({ x: 480, y: 270 });
+  });
+
+  it('누르면 소리 장치를 열고 캔버스 그림 좌표로 바꿔 게임에 알린다', () => {
+    const { game, listeners } = pointerSetup();
+    listeners.get('pointerdown')?.({ clientX: 100, clientY: 50 });
+    expect(game.sound.init).toHaveBeenCalled();
+    expect(game.pointerDown).toHaveBeenCalledWith({ x: 0, y: 0 });
   });
 });

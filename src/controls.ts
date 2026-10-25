@@ -1,4 +1,5 @@
 import type { Game } from './game';
+import type { Point } from './menu';
 
 /** 보조 키: 일시정지(Space), 소리 켜고 끄기(M), 판정 상자 표시(H). */
 const HELPER_KEYS: Record<string, (game: Game) => void> = {
@@ -26,6 +27,24 @@ function onKeyDown(game: Game, event: KeyboardEvent): void {
 function onLeave(game: Game): void {
   game.keyboard.releaseAll();
   game.pauseIfFighting();
+}
+
+/** 캔버스 위의 포인터 위치를 캔버스 그림 좌표로 바꾼다. 캔버스는 화면에서 크기가 달라지므로 비율로 옮긴다. */
+function canvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
+  const box = canvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - box.left) * canvas.width) / box.width,
+    y: ((event.clientY - box.top) * canvas.height) / box.height,
+  };
+}
+
+/** 마우스와 터치가 캔버스를 올리고 누르는 것을 타이틀 메뉴에 연결한다. */
+export function attachMenuPointer(game: Game, canvas: HTMLCanvasElement): void {
+  canvas.addEventListener('pointermove', event => game.menu.hover(canvasPoint(canvas, event)));
+  canvas.addEventListener('pointerdown', event => {
+    game.sound.init();
+    game.pointerDown(canvasPoint(canvas, event));
+  });
 }
 
 /** 키보드와 창 이벤트를 게임에 연결한다. */

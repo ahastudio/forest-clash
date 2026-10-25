@@ -9,12 +9,12 @@ export interface Guide {
 
 export const GUIDES: Record<InputKind, Guide> = {
   keyboard: {
-    titleHint: '1P 버튼: 컴퓨터와 대전   2P 버튼: 둘이서 대전   Space: 조작법',
+    titleHint: '메뉴를 눌러 대전 방식 선택   Space: 조작법',
     pauseFooter: 'Space 계속   M 소리   H 판정 상자 표시',
     showKeyboards: true,
   },
   touch: {
-    titleHint: '오른쪽 위 ⏸ 버튼: 조작법과 일시정지',
+    titleHint: '화면의 메뉴를 눌러 선택   오른쪽 위 ⏸: 조작법',
     pauseFooter: '오른쪽 위 ⏸ 버튼으로 계속',
     showKeyboards: false,
   },
