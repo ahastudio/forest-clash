@@ -1,0 +1,5 @@
+[server]
+forest-clash-server ansible_host=YOUR_SERVER_IP ansible_user=root ansible_port=22 ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
+
+# 첫 접속에서 호스트 키를 받아들인다. 검사를 끄는 것이 아니다. 처음 본 키는 받아들이고,
+# 그 뒤 키가 바뀌면 접속을 거부한다.

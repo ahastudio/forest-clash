@@ -1,0 +1,111 @@
+# 이미지는 레지스트리를 거치지 않는다. 이 컴퓨터에서 빌드해 서버로 직접 올린다.
+- name: Build the server image locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Decide the image tag
+      ansible.builtin.set_fact:
+        build_tag: "{{ lookup('pipe', 'date -u +%Y%m%d-%H%M%S') }}"
+
+    - name: Decide the archive path
+      ansible.builtin.set_fact:
+        image_archive: "/tmp/{{ server_image }}-{{ build_tag }}.tar.gz"
+
+    - name: Build the image for linux/amd64
+      ansible.builtin.command: >
+        docker buildx build --platform linux/amd64 --load
+        -t {{ server_image }}:{{ build_tag }} -t {{ server_image }}:latest
+        {{ playbook_dir }}/../server
+      changed_when: true
+
+    - name: Save the image to a compressed archive
+      ansible.builtin.shell: |
+        set -o pipefail
+        docker save {{ server_image }}:{{ build_tag }} | gzip > {{ image_archive }}
+      args:
+        executable: /bin/bash
+        creates: "{{ image_archive }}"
+
+- name: Deploy Forest Clash server
+  hosts: server
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Upload the image archive
+      ansible.builtin.copy:
+        src: "{{ hostvars['localhost'].image_archive }}"
+        dest: "/tmp/{{ server_image }}-{{ hostvars['localhost'].build_tag }}.tar.gz"
+        mode: "0600"
+
+    - name: Load the image on the server
+      ansible.builtin.command: docker load -i /tmp/{{ server_image }}-{{ hostvars['localhost'].build_tag }}.tar.gz
+      changed_when: true
+
+    - name: Tag the loaded image as latest
+      ansible.builtin.command: docker tag {{ server_image }}:{{ hostvars['localhost'].build_tag }} {{ server_image }}:latest
+      changed_when: true
+
+    - name: Remove the uploaded archive
+      ansible.builtin.file:
+        path: "/tmp/{{ server_image }}-{{ hostvars['localhost'].build_tag }}.tar.gz"
+        state: absent
+
+    - name: Remove the local archive
+      delegate_to: localhost
+      ansible.builtin.file:
+        path: "{{ hostvars['localhost'].image_archive }}"
+        state: absent
+
+    # 승패 기록 폴더는 만들기만 하고 안의 파일은 건드리지 않는다.
+    - name: Create the data folder owned by the container user
+      ansible.builtin.file:
+        path: "{{ server_data_path }}"
+        state: directory
+        owner: "{{ server_data_owner_uid }}"
+        group: "{{ server_data_owner_uid }}"
+        mode: "0700"
+
+    - name: Create the Docker network when missing
+      ansible.builtin.shell: docker network inspect {{ docker_network_name }} >/dev/null 2>&1 && echo exists || docker network create {{ docker_network_name }}
+      register: network_result
+      changed_when: network_result.stdout != 'exists'
+
+    - name: Stop and remove existing server container
+      ansible.builtin.command: docker rm -f {{ server_container_name }}
+      register: rm_result
+      changed_when: "'No such container' not in rm_result.stderr"
+      failed_when:
+        - rm_result.rc != 0
+        - "'No such container' not in rm_result.stderr"
+
+    # 환경변수는 vars.yml의 server_env에서 온다. 값이 로그에 남지 않게 한다.
+    - name: Run server container
+      no_log: true
+      ansible.builtin.shell: |
+        docker run -d --name {{ server_container_name }} \
+          --restart always \
+          --network={{ docker_network_name }} \
+          -p {{ server_host_port }}:{{ server_container_port }} \
+          -v {{ server_data_path }}:/data \
+          {% for key, value in server_env.items() %}
+          -e {{ (key ~ '=' ~ value) | quote }} \
+          {% endfor %}
+          {{ server_image }}:{{ hostvars['localhost'].build_tag }}
+      changed_when: true
+
+    # 컨테이너가 떴다는 것과 서비스가 뜬 것은 다르다. 설정 오류로 바로 종료되면 여기서 드러난다.
+    - name: Wait for the server to report healthy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ server_host_port }}/healthz"
+      register: health
+      until: health.status == 200
+      retries: 20
+      delay: 3
+      changed_when: false
+
+    - name: Report result
+      ansible.builtin.debug:
+        msg: "배포를 마쳤습니다. 이미지 {{ server_image }}:{{ hostvars['localhost'].build_tag }}, server /healthz {{ health.status }}"

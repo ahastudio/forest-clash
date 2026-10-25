@@ -1,0 +1,53 @@
+# 서버 상태를 읽기만 한다. 아무것도 바꾸지 않는다.
+- name: Check Forest Clash status
+  hosts: server
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Docker starts at boot and is running
+      ansible.builtin.shell: echo "enabled=$(systemctl is-enabled docker) active=$(systemctl is-active docker)"
+      register: docker_state
+      changed_when: false
+
+    - name: Required networks exist
+      ansible.builtin.shell: docker network inspect {{ item }} >/dev/null && echo "{{ item }} ok"
+      loop:
+        - "{{ docker_network_name }}"
+      register: networks
+      changed_when: false
+
+    - name: Container is running with a restart policy
+      ansible.builtin.command:
+        argv:
+          - docker
+          - inspect
+          - "{{ server_container_name }}"
+          - --format
+          - "{% raw %}{{.Name}} status={{.State.Status}} health={{.State.Health.Status}} restart={{.HostConfig.RestartPolicy.Name}}{% endraw %}"
+      register: container
+      changed_when: false
+
+    - name: Server reports healthy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ server_host_port }}/healthz"
+      register: health
+      changed_when: false
+
+    - name: Disk space and data file
+      ansible.builtin.shell: |
+        set -o pipefail
+        df -h / | tail -1
+        ls -l {{ server_data_path }}
+      args:
+        executable: /bin/bash
+      register: disk
+      changed_when: false
+
+    - name: Report
+      ansible.builtin.debug:
+        msg:
+          - "{{ docker_state.stdout }}"
+          - "{{ networks.results | map(attribute='stdout') | list }}"
+          - "{{ container.stdout }}"
+          - "server /healthz: {{ health.status }}"
+          - "{{ disk.stdout_lines }}"

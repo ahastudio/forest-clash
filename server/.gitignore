@@ -1,0 +1,14 @@
+# 승패 기록 저장 파일
+*.json
+*.json.tmp
+!go.mod
+
+# 빌드 결과
+/server
+/bin/
+*.exe
+*.test
+*.out
+.dev-server.log
+.dev-server-bin
+.dev-server.env

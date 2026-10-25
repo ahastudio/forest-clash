@@ -1,0 +1,18 @@
+# 이미지는 go.mod, go.sum, 소스(*.go)만 있으면 된다.
+
+# 계정과 승패 기록. 개인 정보가 들어 있다.
+*.json
+*.json.tmp
+
+# 로컬 개발용 파일
+.dev-server.env
+.dev-server.log
+.dev-server-bin
+dev-server.sh
+
+# 이미지가 실행하지 않는 것
+*_test.go
+README.md
+Dockerfile
+.dockerignore
+.gitignore
