@@ -1,11 +1,16 @@
 import type { Inputs, PlayerId } from '../engine';
 import { decodePad } from './bits';
 
-/** 한 프레임의 입력: 몇 번째 프레임에 어떤 버튼이 눌렸는가. */
+/**
+ * 한 프레임의 입력: 몇 번째 프레임에 어떤 버튼이 눌렸는가.
+ */
 export interface FrameInput {
   frame: number;
   bits: number;
 }
+
+// 상대 입력으로 받아 둘 수 있는 앞쪽 프레임 수. 초당 45프레임으로 약 13분이며, 이보다 먼 번호는 버려 메모리가 늘지 않게 한다.
+const MAX_FRAMES_AHEAD = 36000;
 
 /**
  * 입력 지연 락스텝: 프레임마다 두 사람의 입력이 모두 모여야 그 프레임을 진행한다.
@@ -29,19 +34,28 @@ export class Lockstep {
     this.sendFrame = delay;
   }
 
-  /** 지금 누른 입력을 앞으로 진행할 프레임 번호에 붙여 돌려준다. 이 값을 서버로 보낸다. */
+  /**
+   * 지금 누른 입력을 앞으로 진행할 프레임 번호에 붙여 돌려준다. 이 값을 서버로 보낸다.
+   */
   submit(bits: number): FrameInput {
     const input = { frame: this.sendFrame++, bits };
     this.mine.set(input.frame, bits);
     return input;
   }
 
-  /** 상대의 입력을 받아 둔다. */
+  /**
+   * 상대의 입력을 받아 둔다. 이미 지나갔거나 너무 먼 프레임의 입력은 버린다.
+   */
   receive({ frame, bits }: FrameInput): void {
+    if (frame < this.frame || frame >= this.frame + MAX_FRAMES_AHEAD) {
+      return;
+    }
     this.theirs.set(frame, bits);
   }
 
-  /** 두 입력이 모두 모인 프레임이면 슬롯 순서대로 입력을 내주고 다음 프레임으로 간다. 모자라면 null이다. */
+  /**
+   * 두 입력이 모두 모인 프레임이면 슬롯 순서대로 입력을 내주고 다음 프레임으로 간다. 모자라면 null이다.
+   */
   next(): Inputs | null {
     const pair = this.peek();
     if (!pair) {
@@ -53,14 +67,14 @@ export class Lockstep {
       : [decodePad(pair.theirs), decodePad(pair.mine)];
   }
 
-  /** 지금 프레임의 두 입력. 하나라도 아직 없으면 null이다. */
+  // 지금 프레임의 두 입력. 하나라도 아직 없으면 null이다.
   private peek(): { mine: number; theirs: number } | null {
     const mine = this.mine.get(this.frame);
     const theirs = this.theirs.get(this.frame);
     return mine === undefined || theirs === undefined ? null : { mine, theirs };
   }
 
-  /** 모은 입력을 쓰고 다음 프레임으로 간다. */
+  // 모은 입력을 쓰고 다음 프레임으로 간다.
   private advance(): void {
     this.mine.delete(this.frame);
     this.theirs.delete(this.frame);

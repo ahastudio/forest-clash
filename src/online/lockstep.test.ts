@@ -54,4 +54,15 @@ describe('락스텝', () => {
     expect(lockstep.next()?.[1].A).toBe(0);
     expect(lockstep.next()?.[1].A).toBe(1);
   });
+
+  it('이미 지나간 프레임과 너무 먼 프레임의 상대 입력은 버린다', () => {
+    const lockstep = new Lockstep(0, 1);
+    lockstep.next();
+    lockstep.submit(0);
+    lockstep.receive({ frame: 0, bits: 16 });
+    lockstep.receive({ frame: 1_000_000, bits: 16 });
+    lockstep.receive({ frame: 1, bits: 0 });
+    expect(lockstep.next()?.[1].A).toBe(0);
+    expect(lockstep.next()).toBeNull();
+  });
 });
