@@ -96,6 +96,7 @@ func TestDisconnectOfSomeoneNotWaitingKeepsTheWaitingPlayerQueued(t *testing.T) 
 	late, lateBox := arena.join(t, "late", "늦은 사람")
 	arena.hub.Queue(waiting)
 	arena.hub.Disconnect(stranger)
+	arena.hub.Wait()
 	arena.hub.Queue(late)
 	if waitingBox.count("matched") != 1 || lateBox.count("matched") != 1 {
 		t.Fatalf("기다리던 사람과 늦은 사람이 짝지어지지 않았다: %v, %v", waitingBox.types(), lateBox.types())
@@ -109,6 +110,7 @@ func TestLoginRejectsDuplicateAccountUntilFirstDisconnects(t *testing.T) {
 		t.Fatalf("중복 접속 오류 = %v", err)
 	}
 	arena.hub.Disconnect(first)
+	arena.hub.Wait()
 	if _, err := arena.hub.Login("sub-1", "하늘", (&inbox{}).send); err != nil {
 		t.Fatalf("끊긴 뒤 다시 접속하지 못했다: %v", err)
 	}
@@ -124,10 +126,15 @@ func (failingStore) Record(string, string) (Account, Account, error) {
 	return Account{}, Account{}, errors.New("저장소 오류")
 }
 
-func TestLoginReportsStoreFailure(t *testing.T) {
-	hub := NewHub(failingStore{})
+func TestLoginReportsStoreFailureAndFreesTheAccount(t *testing.T) {
+	store, _ := OpenFileStore("")
+	hub := NewHub(failingStore{store})
 	if _, err := hub.Login("sub-1", "", (&inbox{}).send); err == nil {
 		t.Fatal("저장소 오류가 알려지지 않았다")
+	}
+	hub.store = store
+	if _, err := hub.Login("sub-1", "", (&inbox{}).send); err != nil {
+		t.Fatalf("로그인에 실패한 계정이 접속 중으로 남았다: %v", err)
 	}
 }
 
@@ -205,7 +212,8 @@ func TestInputRejectsOutOfRangeValues(t *testing.T) {
 	arena.hub.Input(first, -1, 0)
 	arena.hub.Input(first, 0, 256)
 	arena.hub.Input(first, 0, -1)
-	if firstBox.count("error") != 3 || secondBox.count("input") != 0 {
+	arena.hub.Input(first, maxInputFrame+1, 0)
+	if firstBox.count("error") != 4 || secondBox.count("input") != 0 {
 		t.Fatalf("첫째 = %v, 둘째 = %v", firstBox.types(), secondBox.types())
 	}
 }
@@ -223,10 +231,12 @@ func TestMatchingReportsAreRecordedOnceForBoth(t *testing.T) {
 	arena := newTable()
 	first, second, firstBox, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(1))
+	arena.hub.Wait()
 	if firstBox.count("recorded") != 0 {
 		t.Fatal("한 사람의 보고만으로 기록되었다")
 	}
 	arena.hub.Report(second, winnerOf(1))
+	arena.hub.Wait()
 
 	winnerRecord, loserRecord := secondBox.last(), firstBox.last()
 	if winnerRecord["type"] != "recorded" || winnerRecord["wins"] != float64(1) || winnerRecord["losses"] != float64(0) {
@@ -237,7 +247,9 @@ func TestMatchingReportsAreRecordedOnceForBoth(t *testing.T) {
 	}
 
 	arena.hub.Report(first, winnerOf(1))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(1))
+	arena.hub.Wait()
 	if firstBox.count("recorded") != 1 || secondBox.count("recorded") != 1 {
 		t.Fatal("같은 판이 두 번 기록되었다")
 	}
@@ -247,7 +259,9 @@ func TestMismatchedReportsAreNotRecorded(t *testing.T) {
 	arena := newTable()
 	first, second, firstBox, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(1))
+	arena.hub.Wait()
 	if firstBox.count("recorded")+secondBox.count("recorded") != 0 {
 		t.Fatal("어긋난 보고가 기록되었다")
 	}
@@ -264,12 +278,15 @@ func TestReportValidation(t *testing.T) {
 	arena := newTable()
 	alone, aloneBox := arena.join(t, "alone", "혼자")
 	arena.hub.Report(alone, winnerOf(0))
+	arena.hub.Wait()
 	if aloneBox.last()["type"] != "error" {
 		t.Fatal("대전 없이 한 보고가 받아들여졌다")
 	}
 	first, _, firstBox, _ := arena.matchedPair(t)
 	arena.hub.Report(first, nil)
+	arena.hub.Wait()
 	arena.hub.Report(first, winnerOf(2))
+	arena.hub.Wait()
 	if firstBox.count("error") != 2 {
 		t.Fatalf("잘못된 보고 응답 = %v", firstBox.types())
 	}
@@ -279,6 +296,7 @@ func TestLeavingMidMatchGivesWinToRemainingPlayer(t *testing.T) {
 	arena := newTable()
 	first, _, firstBox, secondBox := arena.matchedPair(t)
 	arena.hub.Disconnect(first)
+	arena.hub.Wait()
 
 	if secondBox.count("opponentLeft") != 1 {
 		t.Fatalf("남은 사람이 받은 메시지 = %v", secondBox.types())
@@ -296,12 +314,36 @@ func TestLeavingMidMatchGivesWinToRemainingPlayer(t *testing.T) {
 	}
 }
 
+func TestLeavingAfterReportingDoesNotGiveTheWinToTheOtherPlayer(t *testing.T) {
+	arena := newTable()
+	first, second, _, secondBox := arena.matchedPair(t)
+	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Wait()
+	arena.hub.Disconnect(first)
+	arena.hub.Wait()
+
+	if secondBox.count("opponentLeft") != 1 || secondBox.count("recorded") != 0 {
+		t.Fatalf("남은 사람이 받은 메시지 = %v", secondBox.types())
+	}
+	remaining, _ := arena.store.Login("second", "")
+	if remaining.Wins != 0 || remaining.Losses != 0 {
+		t.Fatalf("남은 사람의 기록 = %+v", remaining)
+	}
+	arena.hub.Queue(second)
+	if secondBox.last()["type"] != "waiting" {
+		t.Fatalf("남은 사람이 다시 대기열에 들어가지 못했다: %v", secondBox.types())
+	}
+}
+
 func TestLeavingAfterRecordingDoesNotRecordTwice(t *testing.T) {
 	arena := newTable()
 	first, second, _, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(1))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(1))
+	arena.hub.Wait()
 	arena.hub.Leave(first)
+	arena.hub.Wait()
 
 	if secondBox.count("opponentLeft") != 1 || secondBox.count("recorded") != 1 {
 		t.Fatalf("남은 사람이 받은 메시지 = %v", secondBox.types())
@@ -316,8 +358,11 @@ func TestLeavingAfterMismatchDoesNotRecord(t *testing.T) {
 	arena := newTable()
 	first, second, _, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(1))
+	arena.hub.Wait()
 	arena.hub.Leave(first)
+	arena.hub.Wait()
 	if secondBox.count("recorded") != 0 {
 		t.Fatal("어긋난 판이 이탈로 기록되었다")
 	}
@@ -327,7 +372,9 @@ func TestPlayerCanQueueAgainAfterMatchEnds(t *testing.T) {
 	arena := newTable()
 	first, second, firstBox, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Queue(first)
 	arena.hub.Queue(second)
 	if firstBox.count("matched") != 2 || secondBox.count("matched") != 2 {
@@ -339,7 +386,9 @@ func TestInputIsNotRelayedToPlayerWhoStartedNewQueue(t *testing.T) {
 	arena := newTable()
 	first, second, _, secondBox := arena.matchedPair(t)
 	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Report(second, winnerOf(0))
+	arena.hub.Wait()
 	arena.hub.Queue(second)
 	before := secondBox.count("input")
 	arena.hub.Input(first, 1, 1)
@@ -358,7 +407,9 @@ func TestRecordFailureIsReportedToBoth(t *testing.T) {
 	hub.Queue(second)
 	hub.store = failingStore{store}
 	hub.Report(first, winnerOf(0))
+	hub.Wait()
 	hub.Report(second, winnerOf(0))
+	hub.Wait()
 	if firstBox.last()["type"] != "error" || secondBox.last()["type"] != "error" {
 		t.Fatalf("기록 실패가 알려지지 않았다: %v %v", firstBox.types(), secondBox.types())
 	}
@@ -382,4 +433,82 @@ func TestHubIsSafeUnderConcurrentUse(t *testing.T) {
 		}()
 	}
 	group.Wait()
+	arena.hub.Wait()
+}
+
+// slowStore는 승패를 기록하는 중에 멈춰 선다. release를 닫으면 기록이 끝난다.
+type slowStore struct {
+	Store
+	started chan struct{}
+	release chan struct{}
+}
+
+func (store slowStore) Record(winnerSub, loserSub string) (Account, Account, error) {
+	close(store.started)
+	<-store.release
+	return store.Store.Record(winnerSub, loserSub)
+}
+
+func TestRecordingDoesNotBlockTheHub(t *testing.T) {
+	store, _ := OpenFileStore("")
+	hub := NewHub(store)
+	firstBox, secondBox := &inbox{}, &inbox{}
+	first, _ := hub.Login("first", "첫째", firstBox.send)
+	second, _ := hub.Login("second", "둘째", secondBox.send)
+	hub.Queue(first)
+	hub.Queue(second)
+	slow := slowStore{Store: store, started: make(chan struct{}), release: make(chan struct{})}
+	hub.store = slow
+	hub.Report(first, winnerOf(0))
+	hub.Report(second, winnerOf(0))
+	<-slow.started
+
+	hub.Input(first, 1, 2)
+	if secondBox.count("input") != 1 {
+		t.Fatal("기록을 저장하는 동안 입력 전달이 멈췄다")
+	}
+	if firstBox.count("recorded") != 0 {
+		t.Fatal("저장이 끝나기 전에 기록이 알려졌다")
+	}
+	close(slow.release)
+	hub.Wait()
+	if firstBox.count("recorded") != 1 || secondBox.count("recorded") != 1 {
+		t.Fatal("저장이 끝난 뒤 기록이 알려지지 않았다")
+	}
+}
+
+func TestClosedHubRecordsInPlace(t *testing.T) {
+	arena := newTable()
+	first, second, firstBox, secondBox := arena.matchedPair(t)
+	arena.hub.Close()
+	arena.hub.Report(first, winnerOf(1))
+	arena.hub.Report(second, winnerOf(1))
+	if firstBox.count("recorded") != 1 || secondBox.count("recorded") != 1 {
+		t.Fatal("닫힌 허브가 기록을 그 자리에서 알리지 않았다")
+	}
+}
+
+func TestCloseWaitsForRecordingInProgress(t *testing.T) {
+	store, _ := OpenFileStore("")
+	hub := NewHub(store)
+	firstBox, secondBox := &inbox{}, &inbox{}
+	first, _ := hub.Login("first", "첫째", firstBox.send)
+	second, _ := hub.Login("second", "둘째", secondBox.send)
+	hub.Queue(first)
+	hub.Queue(second)
+	slow := slowStore{Store: store, started: make(chan struct{}), release: make(chan struct{})}
+	hub.store = slow
+	hub.Report(first, winnerOf(0))
+	hub.Report(second, winnerOf(0))
+	<-slow.started
+	closed := make(chan struct{})
+	go func() {
+		hub.Close()
+		close(closed)
+	}()
+	close(slow.release)
+	<-closed
+	if firstBox.count("recorded") != 1 {
+		t.Fatal("닫기가 저장 중인 기록을 기다리지 않았다")
+	}
 }

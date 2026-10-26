@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/coder/websocket"
@@ -21,7 +24,48 @@ const (
 	defaultPingInterval = 30 * time.Second
 	defaultPingTimeout  = 10 * time.Second
 	outboundCapacity    = 256
+	// 한 접속이 1초에 보낼 수 있는 메시지 수. 게임은 초당 45프레임이라 입력과 ping을 합쳐도 이보다 훨씬 적게 보낸다.
+	defaultMessageLimit = 150
+	// 한꺼번에 받는 접속 수. 로그인 전 접속도 센다.
+	defaultMaxConnections = 2000
+	// 로그인에 실패한 이유 가운데 서버 안쪽 사정(네트워크 주소, 파일 경로)이 섞인 것을 가리는 문구.
+	internalLoginReason = "로그인할 수 없습니다. 잠시 뒤 다시 시도해 주세요"
 )
+
+// publicLoginErrors는 사용자에게 그대로 알려도 되는 로그인 실패 이유다. 이 밖의 오류는 서버 로그에만 남긴다.
+var publicLoginErrors = []error{
+	errMalformedToken, errUnsupportedAlg, errBadSignature, errWrongIssuer, errWrongAudience,
+	errTokenExpired, errMissingSubject, errUnknownKey, errStubDisabled, errAlreadyOnline,
+}
+
+// publicReason은 로그인 실패 이유를 사용자에게 보낼 문구로 바꾼다.
+func publicReason(cause error) string {
+	for _, known := range publicLoginErrors {
+		if errors.Is(cause, known) {
+			return known.Error()
+		}
+	}
+	return internalLoginReason
+}
+
+// rateLimiter는 1초 창마다 받은 메시지 수를 센다.
+type rateLimiter struct {
+	limit       int
+	now         func() time.Time
+	windowStart time.Time
+	count       int
+}
+
+// allow는 이번 메시지를 받아도 되면 true다.
+func (limiter *rateLimiter) allow() bool {
+	now := limiter.now()
+	if now.Sub(limiter.windowStart) >= time.Second {
+		limiter.windowStart = now
+		limiter.count = 0
+	}
+	limiter.count++
+	return limiter.count <= limiter.limit
+}
 
 // Server는 웹소켓 접속을 받아 허브와 이어 준다.
 type Server struct {
@@ -31,8 +75,13 @@ type Server struct {
 	helloLimit     time.Duration
 	pingInterval   time.Duration
 	pingTimeout    time.Duration
+	messageLimit   int
+	maxConnections int64
+	active         atomic.Int64
+	now            func() time.Time
 }
 
+// NewServer는 기본 제한(메시지 수, 접속 수, 대기 시간)을 갖춘 서버를 만든다.
 func NewServer(hub *Hub, verifier TokenVerifier, allowedOrigin string) *Server {
 	return &Server{
 		hub:            hub,
@@ -41,6 +90,9 @@ func NewServer(hub *Hub, verifier TokenVerifier, allowedOrigin string) *Server {
 		helloLimit:     defaultHelloLimit,
 		pingInterval:   defaultPingInterval,
 		pingTimeout:    defaultPingTimeout,
+		messageLimit:   defaultMessageLimit,
+		maxConnections: defaultMaxConnections,
+		now:            time.Now,
 	}
 }
 
@@ -103,6 +155,7 @@ func (link *connection) write(message any) {
 	_ = link.socket.Write(writeContext, websocket.MessageText, content)
 }
 
+// runWriter는 보낼 줄의 메시지를 차례로 소켓에 쓴다. 쓰기에 실패하면 접속을 끝낸다.
 func (link *connection) runWriter() {
 	for {
 		select {
@@ -140,13 +193,19 @@ func (link *connection) runPinger() {
 	}
 }
 
-func (server *Server) serveWebSocket(writer http.ResponseWriter, request *http.Request) {
-	socket, err := websocket.Accept(writer, request, &websocket.AcceptOptions{OriginPatterns: server.originPatterns})
-	if err != nil {
-		return
+// admit은 접속 수를 하나 늘린다. 한도를 넘으면 되돌리고 거절한다. 받아들였으면 true다.
+func (server *Server) admit(writer http.ResponseWriter) bool {
+	if server.active.Add(1) > server.maxConnections {
+		server.active.Add(-1)
+		http.Error(writer, "접속이 가득 찼습니다", http.StatusServiceUnavailable)
+		return false
 	}
-	lifetime, cancel := context.WithCancel(request.Context())
-	link := &connection{
+	return true
+}
+
+// newConnection은 소켓 하나에 보내기 대기열과 핑 설정을 붙여 접속을 만든다.
+func (server *Server) newConnection(socket *websocket.Conn, lifetime context.Context, cancel context.CancelFunc) *connection {
+	return &connection{
 		socket:       socket,
 		lifetime:     lifetime,
 		cancel:       cancel,
@@ -154,6 +213,20 @@ func (server *Server) serveWebSocket(writer http.ResponseWriter, request *http.R
 		pingInterval: server.pingInterval,
 		pingTimeout:  server.pingTimeout,
 	}
+}
+
+// serveWebSocket은 접속 하나의 한살이를 맡는다: 접속 수 확인, 웹소켓 승격, 로그인, 메시지 읽기.
+func (server *Server) serveWebSocket(writer http.ResponseWriter, request *http.Request) {
+	if !server.admit(writer) {
+		return
+	}
+	defer server.active.Add(-1)
+	socket, err := websocket.Accept(writer, request, &websocket.AcceptOptions{OriginPatterns: server.originPatterns})
+	if err != nil {
+		return
+	}
+	lifetime, cancel := context.WithCancel(request.Context())
+	link := server.newConnection(socket, lifetime, cancel)
 	defer cancel()
 	defer socket.CloseNow()
 	go link.runWriter()
@@ -174,32 +247,52 @@ func (server *Server) login(link *connection) *Player {
 	link.socket.SetReadLimit(maxHelloBytes)
 	helloContext, cancel := context.WithTimeout(link.lifetime, server.helloLimit)
 	defer cancel()
-	_, content, err := link.socket.Read(helloContext)
-	if err != nil {
+	message, ok := readHello(helloContext, link)
+	if !ok {
 		return nil
 	}
-	var message clientMessage
-	if json.Unmarshal(content, &message) != nil || message.Type != typeHello {
-		link.write(newError("첫 메시지는 hello여야 합니다"))
-		return nil
-	}
-	claims, err := server.verifier.Verify(link.lifetime, message.Token)
+	claims, err := server.verifier.Verify(helloContext, message.Token)
 	if err != nil {
-		link.write(newError(err.Error()))
-		return nil
+		return rejectLogin(link, err)
 	}
 	player, err := server.hub.Login(claims.Subject, claims.Name, link.send)
 	if err != nil {
-		link.write(newError(err.Error()))
-		return nil
+		return rejectLogin(link, err)
 	}
 	return player
 }
 
+// readHello는 첫 메시지를 읽는다. 읽지 못했거나 hello가 아니면 false이고, hello가 아닌 경우에는 사용자에게 알린다.
+func readHello(helloContext context.Context, link *connection) (clientMessage, bool) {
+	_, content, err := link.socket.Read(helloContext)
+	if err != nil {
+		return clientMessage{}, false
+	}
+	var message clientMessage
+	if json.Unmarshal(content, &message) != nil || message.Type != typeHello {
+		link.write(newError("첫 메시지는 hello여야 합니다"))
+		return clientMessage{}, false
+	}
+	return message, true
+}
+
+// rejectLogin은 실패 이유를 서버 로그에 남기고, 사용자에게는 알려도 되는 문구만 보낸다. 항상 nil을 돌려준다.
+func rejectLogin(link *connection, cause error) *Player {
+	log.Printf("로그인 실패: %v", cause)
+	link.write(newError(publicReason(cause)))
+	return nil
+}
+
+// readLoop는 로그인한 접속의 메시지를 끝날 때까지 읽어 나눠 준다. 메시지가 너무 빠르면 접속을 끊는다.
 func (server *Server) readLoop(link *connection, player *Player) {
+	limiter := &rateLimiter{limit: server.messageLimit, now: server.now}
 	for {
 		_, content, err := link.socket.Read(link.lifetime)
 		if err != nil {
+			return
+		}
+		if !limiter.allow() {
+			link.write(newError("메시지를 너무 빠르게 보내 접속을 끊습니다"))
 			return
 		}
 		var message clientMessage
@@ -211,6 +304,7 @@ func (server *Server) readLoop(link *connection, player *Player) {
 	}
 }
 
+// dispatch는 메시지 종류에 맞는 허브 동작을 부른다.
 func (server *Server) dispatch(player *Player, message clientMessage) {
 	switch message.Type {
 	case typeQueue:

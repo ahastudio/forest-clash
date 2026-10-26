@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -17,7 +18,9 @@ const (
 	defaultDataFile = "forest-clash-data.json"
 	shutdownTimeout = 5 * time.Second
 	headerTimeout   = 5 * time.Second
-	keysTimeout     = 10 * time.Second
+	idleTimeout     = 60 * time.Second
+	// 구글 키를 가져오는 동안 다른 로그인이 기다리므로 짧게 둔다.
+	keysTimeout = 3 * time.Second
 )
 
 // config는 환경 변수에서 읽은 설정이다.
@@ -40,6 +43,9 @@ func loadConfig(getenv func(string) string) (config, error) {
 	}
 	if loaded.googleClientID == "" && !loaded.authStub {
 		return config{}, errors.New("GOOGLE_CLIENT_ID 환경 변수가 필요합니다(로컬 개발이면 AUTH_STUB=1)")
+	}
+	if loaded.authStub && strings.HasPrefix(loaded.allowedOrigin, "https://") {
+		return config{}, errors.New("AUTH_STUB는 https 출처와 함께 켤 수 없습니다(로컬 개발에서만 켭니다)")
 	}
 	return loaded, nil
 }
@@ -71,23 +77,31 @@ func run(lifetime context.Context, settings config) error {
 	if err != nil {
 		return err
 	}
-	server := NewServer(NewHub(store), newVerifier(settings), settings.allowedOrigin)
+	hub := NewHub(store)
+	server := NewServer(hub, newVerifier(settings), settings.allowedOrigin)
 	httpServer := &http.Server{
 		Addr:              ":" + settings.port,
 		Handler:           server.Routes(),
 		ReadHeaderTimeout: headerTimeout,
+		IdleTimeout:       idleTimeout,
 	}
-	go func() {
-		<-lifetime.Done()
-		shutdownContext, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-		defer cancel()
-		_ = httpServer.Shutdown(shutdownContext)
-	}()
+	go shutDownWhenDone(lifetime, httpServer)
 	log.Printf("서버를 시작합니다: %s", httpServer.Addr)
 	if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
+	// 끄는 신호를 받았을 때 저장소에 쓰는 중이던 승패 기록이 잘리지 않게 끝나기를 기다린다.
+	hub.Close()
 	return nil
+}
+
+// shutDownWhenDone은 끄는 신호(lifetime)가 오면 제한 시간 안에 서버를 내린다.
+// lifetime은 이미 끝났으므로 종료에 쓰는 컨텍스트는 새로 만든다.
+func shutDownWhenDone(lifetime context.Context, httpServer *http.Server) {
+	<-lifetime.Done()
+	shutdownContext, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	_ = httpServer.Shutdown(shutdownContext)
 }
 
 // exit은 프로세스를 끝내는 방법이다. 테스트에서는 기록만 하는 것으로 바꾼다.

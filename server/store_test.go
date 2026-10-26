@@ -19,12 +19,35 @@ func TestShortNameRemovesControlCharactersTrimsAndLimitsLength(t *testing.T) {
 	}
 }
 
+func TestShortNameRemovesDirectionAndZeroWidthCharacters(t *testing.T) {
+	if got := shortName("하늘\u202eabc\u200b선수\u2066"); got != "하늘abc선수" {
+		t.Fatalf("이름 = %q", got)
+	}
+}
+
+func TestFileStoreDoesNotSaveWhenNothingChanges(t *testing.T) {
+	directory := t.TempDir()
+	store, _ := OpenFileStore(filepath.Join(directory, "data.json"))
+	_, _ = store.Login("winner", "승자")
+	store.name = filepath.Join("없는폴더", "data.json")
+	if _, err := store.Login("winner", "승자"); err != nil {
+		t.Fatalf("같은 이름의 로그인이 저장을 시도했다: %v", err)
+	}
+	if _, err := store.Login("winner", ""); err != nil {
+		t.Fatalf("이름 없는 로그인이 저장을 시도했다: %v", err)
+	}
+}
+
 func TestFileStoreReportsWhenTheSavedFileCannotBeReplaced(t *testing.T) {
 	directory := t.TempDir()
-	t.Cleanup(func() { _ = os.Remove(directory + ".tmp") })
-	store := &FileStore{path: directory, accounts: map[string]*Account{}}
+	root, _ := os.OpenRoot(filepath.Dir(directory))
+	t.Cleanup(func() { _ = root.Close() })
+	store := &FileStore{root: root, name: filepath.Base(directory), accounts: map[string]*Account{}}
 	if err := store.save(); err == nil {
 		t.Fatal("폴더를 저장 파일로 바꾸려는 실패가 알려지지 않았다")
+	}
+	if _, err := os.Stat(directory + ".tmp"); !os.IsNotExist(err) {
+		t.Fatal("바꾸지 못한 임시 파일이 남았다")
 	}
 }
 
@@ -116,7 +139,7 @@ func TestFileStoreKeepsMemoryUnchangedWhenSaveFails(t *testing.T) {
 	store, _ := OpenFileStore(filepath.Join(directory, "data.json"))
 	_, _ = store.Login("winner", "승자")
 	_, _ = store.Login("loser", "패자")
-	store.path = filepath.Join(directory, "없는폴더", "data.json")
+	store.name = filepath.Join("없는폴더", "data.json")
 
 	if _, err := store.Login("newcomer", "새 사람"); err == nil {
 		t.Fatal("저장 실패가 알려지지 않았다")
@@ -135,5 +158,11 @@ func TestFileStoreKeepsMemoryUnchangedWhenSaveFails(t *testing.T) {
 	}
 	if store.accounts["winner"].Wins != 0 || store.accounts["loser"].Losses != 0 {
 		t.Fatal("저장에 실패한 기록이 메모리에 남았다")
+	}
+}
+
+func TestOpenFileStoreRejectsMissingDirectory(t *testing.T) {
+	if _, err := OpenFileStore(filepath.Join(t.TempDir(), "없는폴더", "data.json")); err == nil {
+		t.Fatal("없는 저장 폴더를 받아들였다")
 	}
 }

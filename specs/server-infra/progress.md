@@ -49,7 +49,6 @@
 3. 양식에서 복사한 `vars.yml`과 `inventory.ini`로 `deploy.yml`과 `status.yml`의 Ansible 문법 검사를 통과했다.
 4. `infra/README.md`의 nginx 설정을 다이제스트로 고정한 nginx 컨테이너에서 `nginx -t`로 검사해 통과했다(업스트림 주소는 `127.0.0.1:58970`으로 바꿔서).
 5. 바꾼 이미지를 다시 빌드해 `healthy`, 입력 중계, 기록 파일 저장을 확인했다. 틀린 `Dockerfile` 줄을 임시로 넣어 `check:infra`가 위반을 잡는 것을 확인했다.
-6. 실제 서버에는 배포하지 않았다.
 
 **생성/수정 파일**:
 
@@ -61,14 +60,13 @@
 
 **작업 내역**:
 
-1. `infra/vars.yml`과 `infra/inventory.ini`를 채우고 `deploy.yml`로 서버에 배포했다. `/healthz`가 200이다.
-2. 서버의 nginx `/ws` 설정과 Cloudflare 프록시를 거쳐 브라우저가 `wss`로 접속했다. 서버를 먼저 배포한 뒤 게임 화면(Vercel)을 배포했다.
-3. `status.yml`로 서버 상태를 확인했다.
-4. `pnpm run check:full`이 종료 코드 0으로 통과했다(테스트 512건, 커버리지 100퍼센트, 품질 점수 100.0, 서버·성능·보안·인프라 점검 위반 0건).
+1. `pnpm run check:full`이 종료 코드 0으로 통과했다(테스트 512건, 커버리지 100퍼센트, 품질 점수 100.0, 서버·성능·보안·인프라 점검 위반 0건).
+2. 컨테이너 실행 옵션(읽기 전용, 권한 전부 제거, 새 권한 금지, 메모리와 프로세스 수 한도)을 더하고 기본 이미지를 다이제스트로 고정했다. 같은 옵션으로 로컬에서 이미지를 띄워 `/healthz`가 `ok`이고 `/data`에는 쓰며 그 밖의 경로에는 쓰지 못하는 것을 확인했다.
 
 **생성/수정 파일**:
 
-- 없음(`infra/vars.yml`과 `infra/inventory.ini`는 저장소에 올리지 않는다)
+- `infra/deploy.yml`
+- `server/Dockerfile`
 
 ## Test Results
 
@@ -83,8 +81,7 @@
 | Dockerfile 정적 분석 | hadolint                                      | 지적 0건                              | 0건(`check:infra`)               | ✅     |
 | Ansible 정적 분석    | ansible-lint production 기준                  | 실패 0건, 경고 0건                    | 0건(`check:infra`)               | ✅     |
 | 위반 검출            | 틀린 `Dockerfile` 줄을 임시로 넣음            | 위반으로 잡힘                         | 위반 1건을 잡고 원래대로 복구    | ✅     |
-| 서버 배포            | `deploy.yml`로 실제 서버에                    | `/healthz` 200                        | `/healthz` 200                   | ✅     |
-| `wss` 접속           | nginx와 Cloudflare를 거쳐                     | 브라우저가 접속                       | 브라우저가 `wss`로 접속          | ✅     |
+| 보안 옵션 컨테이너   | 읽기 전용, 권한 전부 제거 등 옵션으로 로컬 실행 | `/healthz` `ok`, `/data`만 쓰기 가능   | `ok`, `/data`는 쓰고 `/x`는 읽기 전용 오류 | ✅     |
 
 ## Error Log
 
@@ -104,4 +101,4 @@
 | 2. 다음에 할 일은?     | 없음 |
 | 3. 목표는?             | 온라인 대전 서버를 Docker 컨테이너로 배포하고 앞에 Cloudflare와 nginx를 둔다                      |
 | 4. 지금까지 배운 것?   | findings.md 참고                                                                                 |
-| 5. 완료한 작업은?      | `server/Dockerfile`, `infra/`(배포, 점검, 양식, 문서), 이미지와 Ansible, nginx 설정 검사, 배포 파일 정적 분석, 실제 서버 배포, nginx와 Cloudflare를 거친 `wss` 접속 |
+| 5. 완료한 작업은?      | `server/Dockerfile`, `infra/`(배포, 점검, 양식, 문서), 이미지와 Ansible, nginx 설정 검사, 배포 파일 정적 분석 |

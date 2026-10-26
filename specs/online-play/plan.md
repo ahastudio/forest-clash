@@ -220,7 +220,7 @@ Hub (서버)
   };
 ```
 
-**Refactoring:** 엔진은 그대로 두고 타이틀 입력만 바꿔 준다. 온라인 대전의 프레임 진행은 `stepOnline`으로 나눈다.
+**Refactoring:** 엔진은 그대로 두고 타이틀 입력만 바꿔 준다. 온라인 대전의 프레임 진행은 `OnlineFrame`(`src/online/frame.ts`)으로 나눈다.
 
 ### Step 5: Security - 보안 정책
 
@@ -292,6 +292,34 @@ export function isExpired(token: string, nowSeconds: number): boolean {
 세션은 로그인한 토큰이 만료되지 않았을 때만 다시 쓴다. 스크립트를 불러오지 못한 실패는 기억하지 않아 다시 시도하면 다시 불러온다. 서버는 표시 이름에서 제어 문자를 빼고 앞뒤 공백을 지운 뒤 32글자까지만 쓰며, 공개 키를 가져오지 못해도 받아 둔 키로 확인하고 가져오기는 1분에 한 번만 시도한다.
 
 **Refactoring:** 서버의 이름 거르기는 stub 이름과 같은 함수(`shortName`)를 쓴다.
+
+### Step 8: Server - 보안 결함 고치기
+
+**Red:** `server/hub_test.go`
+
+```go
+func TestLeavingAfterReportingDoesNotGiveTheWinToTheOtherPlayer(t *testing.T) {
+	arena := newTable()
+	first, second, _, secondBox := arena.matchedPair(t)
+	arena.hub.Report(first, winnerOf(0))
+	arena.hub.Disconnect(first)
+
+	if secondBox.count("opponentLeft") != 1 || secondBox.count("recorded") != 0 {
+		t.Fatalf("남은 사람이 받은 메시지 = %v", secondBox.types())
+	}
+```
+
+**Green:** `server/hub.go`
+
+```go
+if !match.finished && match.reports[player.slot] == nil {
+	hub.recordLocked(match, opponent.slot)
+}
+```
+
+접속마다 1초 창으로 메시지를 세는 `rateLimiter`가 한도를 넘으면 오류를 보내고 접속을 끊는다. `Server`는 동시 접속 수를 세어 한도를 넘으면 503으로 거절한다. 로그인 오류는 `publicLoginErrors`에 있는 것만 사용자에게 보내고 나머지는 로그에 남긴다. 저장소 로그인은 `reserve`로 접속 상태를 먼저 잡은 뒤 허브의 잠금을 풀고 한다. 승패 기록(`recordLocked`)은 판을 끝난 것으로 표시한 뒤 `record`가 잠금 밖에서 저장하고 결과를 보낸다. 클라이언트의 `Lockstep.receive`는 지나갔거나 36000프레임보다 먼 입력을 버린다.
+
+**Refactoring:** 한도 값은 `Server`의 필드(`messageLimit`, `maxConnections`)로 받아 시험이 전역 값을 바꾸지 않고 작은 값을 넣는다.
 
 ## Verification
 

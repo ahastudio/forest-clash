@@ -36,7 +36,7 @@
 | `vars.yml.example` | 변수 양식. 값은 비어 있다 | 포함 |
 | `inventory.ini` | 서버 IP와 접속 정보 | 제외 |
 | `vars.yml` | 이미지 이름, 포트, 네트워크, 서버 환경변수 | 제외 |
-| `../server/Dockerfile` | Go 서버 이미지. 빌드와 실행 두 단계다 | 포함 |
+| `../server/Dockerfile` | Go 서버 이미지. 빌드와 실행 두 단계이고 기본 이미지는 다이제스트로 고정한다 | 포함 |
 | `../server/.dockerignore` | 승패 기록 파일과 개발용 파일을 이미지에서 뺀다 | 포함 |
 
 `inventory.ini`와 `vars.yml`은 `.gitignore`에 있다.
@@ -179,11 +179,12 @@ ansible-playbook -i inventory.ini deploy.yml
 4. `forest-clash` Docker 네트워크가 없으면 만든다
 5. 기존 서버 컨테이너 제거. 없으면 건너뛴다
 6. 서버 컨테이너 실행. `forest-clash` 네트워크, 호스트 포트 `58970`,
-   `--restart always`, 데이터 폴더 연결, `server_env`의 환경변수
+   `--restart always`, 데이터 폴더 연결, `server_env`의 환경변수.
+   읽기 전용 파일 시스템(`--read-only`), 권한 전부 제거(`--cap-drop ALL`), 새 권한 금지(`no-new-privileges`),
+   메모리 256MB, 프로세스 256개로 제한한다. 서버가 쓰는 곳은 `/data` 하나다
 7. `/healthz`가 200이 될 때까지 대기. 되지 않으면 실패로 끝난다
 
 컨테이너 실행 단계는 환경변수 값이 로그에 남지 않도록 출력을 숨긴다.
-이 절차는 서버 배포를 지시받았을 때만 실행한다.
 
 ## 점검
 

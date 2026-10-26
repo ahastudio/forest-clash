@@ -57,6 +57,7 @@ type Verifier struct {
 	now      func() time.Time
 }
 
+// NewVerifier는 이 클라이언트 아이디를 대상으로 하는 토큰만 받아들이는 검증기를 만든다.
 func NewVerifier(clientID string, keys KeyProvider, now func() time.Time) *Verifier {
 	return &Verifier{clientID: clientID, keys: keys, now: now}
 }
@@ -80,14 +81,7 @@ func (verifier *Verifier) Verify(lifetime context.Context, token string) (Claims
 	if len(parts) != 3 {
 		return Claims{}, errMalformedToken
 	}
-	var header tokenHeader
-	if err := decodeSegment(parts[0], &header); err != nil {
-		return Claims{}, err
-	}
-	if header.Algorithm != "RS256" {
-		return Claims{}, errUnsupportedAlg
-	}
-	key, err := verifier.keys.Key(lifetime, header.KeyID)
+	key, err := verifier.signingKey(lifetime, parts[0])
 	if err != nil {
 		return Claims{}, err
 	}
@@ -99,6 +93,19 @@ func (verifier *Verifier) Verify(lifetime context.Context, token string) (Claims
 		return Claims{}, err
 	}
 	return verifier.check(payload)
+}
+
+// signingKey는 토큰 머리글에서 알고리즘과 키 번호를 읽고, 서명을 확인할 공개 키를 돌려준다.
+// 서명 알고리즘은 RS256만 받아들인다.
+func (verifier *Verifier) signingKey(lifetime context.Context, headerSegment string) (*rsa.PublicKey, error) {
+	var header tokenHeader
+	if err := decodeSegment(headerSegment, &header); err != nil {
+		return nil, err
+	}
+	if header.Algorithm != "RS256" {
+		return nil, errUnsupportedAlg
+	}
+	return verifier.keys.Key(lifetime, header.KeyID)
 }
 
 func (verifier *Verifier) check(payload tokenPayload) (Claims, error) {
@@ -152,6 +159,7 @@ type GoogleKeys struct {
 	attemptedAt time.Time
 }
 
+// NewGoogleKeys는 주소(url)에서 공개 키를 가져오는 캐시를 만든다.
 func NewGoogleKeys(client *http.Client, url string, now func() time.Time) *GoogleKeys {
 	return &GoogleKeys{client: client, url: url, now: now}
 }
@@ -212,21 +220,30 @@ func (provider *GoogleKeys) fetch(lifetime context.Context, now time.Time) error
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("공개 키 응답이 올바르지 않습니다: %d", response.StatusCode)
 	}
-	var body struct {
-		Keys []jsonWebKey `json:"keys"`
-	}
-	if err := json.NewDecoder(io.LimitReader(response.Body, maxKeysResponseBytes)).Decode(&body); err != nil {
-		return fmt.Errorf("공개 키 응답을 읽을 수 없습니다: %w", err)
-	}
-	keys := map[string]*rsa.PublicKey{}
-	for _, webKey := range body.Keys {
-		if key, ok := webKey.publicKey(); ok {
-			keys[webKey.KeyID] = key
-		}
+	keys, err := decodeKeys(response.Body)
+	if err != nil {
+		return err
 	}
 	provider.keys = keys
 	provider.expires = now.Add(keyLifetime(response.Header.Get("Cache-Control")))
 	return nil
+}
+
+// decodeKeys는 구글의 공개 키 응답(JWK 목록)을 읽어 키 번호별 RSA 공개 키로 만든다. 쓸 수 없는 키는 건너뛴다.
+func decodeKeys(body io.Reader) (map[string]*rsa.PublicKey, error) {
+	var document struct {
+		Keys []jsonWebKey `json:"keys"`
+	}
+	if err := json.NewDecoder(io.LimitReader(body, maxKeysResponseBytes)).Decode(&document); err != nil {
+		return nil, fmt.Errorf("공개 키 응답을 읽을 수 없습니다: %w", err)
+	}
+	keys := map[string]*rsa.PublicKey{}
+	for _, webKey := range document.Keys {
+		if key, ok := webKey.publicKey(); ok {
+			keys[webKey.KeyID] = key
+		}
+	}
+	return keys, nil
 }
 
 func (webKey jsonWebKey) publicKey() (*rsa.PublicKey, bool) {

@@ -154,3 +154,14 @@ func TestLoadConfigRequiresGoogleClientID(t *testing.T) {
 		t.Fatal("클라이언트 아이디 없이 설정이 만들어졌다")
 	}
 }
+
+func TestLoadConfigRefusesStubWithHTTPSOrigin(t *testing.T) {
+	environment := map[string]string{"AUTH_STUB": "1", "ALLOWED_ORIGIN": "https://forest-clash.example"}
+	if _, err := loadConfig(func(name string) string { return environment[name] }); err == nil {
+		t.Fatal("https 출처와 함께 stub 로그인이 켜졌다")
+	}
+	environment["ALLOWED_ORIGIN"] = "http://localhost:58969"
+	if _, err := loadConfig(func(name string) string { return environment[name] }); err != nil {
+		t.Fatalf("로컬 출처의 stub 로그인이 거절되었다: %v", err)
+	}
+}

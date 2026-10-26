@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -337,5 +339,93 @@ func TestStubLoginPlaysAWholeMatch(t *testing.T) {
 	}
 	if recorded := second.expect("recorded"); recorded["losses"] != float64(1) {
 		t.Fatalf("진 쪽의 기록 = %v", recorded)
+	}
+}
+
+func TestPublicReasonHidesInternalDetails(t *testing.T) {
+	internal := fmt.Errorf("공개 키를 가져올 수 없습니다: %w", errors.New("dial tcp 203.0.113.7:443: i/o timeout"))
+	if got := publicReason(internal); got != internalLoginReason {
+		t.Fatalf("내부 오류의 사용자 문구 = %q", got)
+	}
+	if got := publicReason(fmt.Errorf("감싼 오류: %w", errTokenExpired)); got != errTokenExpired.Error() {
+		t.Fatalf("알려도 되는 오류의 사용자 문구 = %q", got)
+	}
+}
+
+func TestRateLimiterCountsPerWindow(t *testing.T) {
+	now := time.Unix(100, 0)
+	limiter := &rateLimiter{limit: 2, now: func() time.Time { return now }}
+	var allowed []bool
+	for range 3 {
+		allowed = append(allowed, limiter.allow())
+	}
+	if !allowed[0] || !allowed[1] || allowed[2] {
+		t.Fatalf("한 창에서 두 번까지만 받아야 한다: %v", allowed)
+	}
+	now = now.Add(time.Second)
+	if !limiter.allow() {
+		t.Fatal("새 창에서 다시 받아야 한다")
+	}
+}
+
+func TestTooManyMessagesCloseTheConnection(t *testing.T) {
+	live := startConfiguredServer(t, "", func(server *Server) { server.messageLimit = 3 })
+	peer := live.login(t, "sub")
+	lifetime, cancel := context.WithTimeout(context.Background(), waitLimit)
+	defer cancel()
+	// 서버가 한도를 넘자마자 접속을 끊으므로 뒤의 전송은 실패할 수 있다.
+	for range 10 {
+		_ = peer.socket.Write(lifetime, websocket.MessageText, []byte(`{"type":"ping","sent":1}`))
+	}
+	sawError := false
+	for {
+		_, content, err := peer.socket.Read(lifetime)
+		if err != nil {
+			break
+		}
+		sawError = sawError || strings.Contains(string(content), `"type":"error"`)
+	}
+	if !sawError {
+		t.Fatal("너무 빠른 메시지에 오류가 알려지지 않았다")
+	}
+}
+
+func TestConnectionsBeyondTheLimitAreRefused(t *testing.T) {
+	live := startConfiguredServer(t, "", func(server *Server) { server.maxConnections = 1 })
+	live.login(t, "first")
+	address := "ws" + strings.TrimPrefix(live.URL, "http") + "/ws"
+	lifetime, cancel := context.WithTimeout(context.Background(), waitLimit)
+	defer cancel()
+	if _, response, err := websocket.Dial(lifetime, address, nil); err == nil || response.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("한도를 넘은 접속이 거절되지 않았다: %v", err)
+	}
+}
+
+func TestWriterCancelsTheConnectionWhenAWriteFails(t *testing.T) {
+	cancelled := make(chan bool, 1)
+	handler := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		socket, err := websocket.Accept(writer, request, nil)
+		if err != nil {
+			return
+		}
+		_ = socket.CloseNow()
+		lifetime, cancel := context.WithCancel(request.Context())
+		defer cancel()
+		link := &connection{socket: socket, lifetime: lifetime, cancel: cancel, outbound: make(chan []byte, 1)}
+		link.send(newError("보낼 수 없는 메시지"))
+		link.runWriter()
+		cancelled <- lifetime.Err() != nil
+	})
+	live := httptest.NewServer(handler)
+	t.Cleanup(live.Close)
+	lifetime, cancel := context.WithTimeout(context.Background(), waitLimit)
+	defer cancel()
+	socket, _, err := websocket.Dial(lifetime, "ws"+strings.TrimPrefix(live.URL, "http"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = socket.CloseNow() })
+	if !<-cancelled {
+		t.Fatal("쓰기에 실패했는데 접속이 닫히지 않았다")
 	}
 }

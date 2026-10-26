@@ -120,6 +120,11 @@ ansible-playbook -i inventory.ini status.yml --syntax-check
         docker run -d --name {{ server_container_name }} \
           --restart always \
           --network={{ docker_network_name }} \
+          --read-only \
+          --cap-drop ALL \
+          --security-opt no-new-privileges \
+          --memory 256m \
+          --pids-limit 256 \
           -p {{ server_host_port }}:{{ server_container_port }} \
           -v {{ server_data_path }}:/data \
 ```

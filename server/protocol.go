@@ -22,7 +22,11 @@ const (
 	typePong         = "pong"
 )
 
-const maxInputBits = 255
+const (
+	maxInputBits = 255
+	// 프레임 번호의 상한. 초당 45프레임으로 며칠을 이어도 닿지 않는 값이다.
+	maxInputFrame = 1 << 24
+)
 
 // clientMessage는 클라이언트가 보내는 모든 메시지의 모양이다. 종류마다 쓰는 필드가 다르다.
 type clientMessage struct {

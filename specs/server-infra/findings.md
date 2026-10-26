@@ -51,6 +51,8 @@
 | 상태 확인 명령은 `CMD ["sh", "-c", ...]` 형태로 적는다 | hadolint(DL3025)가 JSON 형태를 요구하고, `${PORT}`를 풀려면 셸이 필요하다. |
 | Ansible은 모든 모듈을 `ansible.builtin.*`로 적고 파이프에는 `pipefail`을 건다 | ansible-lint production 기준(fqcn, risky-shell-pipe, no-changed-when, command-instead-of-shell)을 지키기 위해서다. |
 | 서버를 먼저 배포하고 게임 화면을 나중에 배포한다 | 새 화면이 새 메시지를 보내는데 옛 서버는 오류로 답하고, 화면은 오류를 받으면 대전을 끝내기 때문이다. |
+| 컨테이너는 읽기 전용 파일 시스템, 권한 전부 제거, 새 권한 금지, 메모리 256MB, 프로세스 256개로 실행한다 | 서버가 쓰는 곳은 `/data` 하나이고 특별한 권한이 필요 없으므로, 컨테이너가 뚫려도 할 수 있는 일을 줄이고 자원을 다 써 버리는 것을 막기 위해서다. 같은 옵션으로 이미지를 띄워 `/healthz` 응답과 `/data` 쓰기를 확인했다. |
+| 기본 이미지(`golang`, `alpine`)는 다이제스트로 고정한다 | 같은 태그가 나중에 다른 이미지를 가리켜도 같은 이미지로 빌드하기 위해서다. |
 
 ## Issues Encountered
 

@@ -30,6 +30,10 @@ type Hub struct {
 	store  Store
 	online map[string]*Player
 	queue  []*Player
+	// recording은 저장소에 쓰는 중인 승패 기록의 수를 센다. Wait와 Close가 끝나기를 기다린다.
+	recording sync.WaitGroup
+	// closed는 Close가 불린 뒤 true다. 닫힌 허브는 승패를 따로 돌리지 않고 그 자리에서 기록한다.
+	closed bool
 }
 
 func NewHub(store Store) *Hub {
@@ -38,20 +42,34 @@ func NewHub(store Store) *Hub {
 
 // Login은 계정을 접속 상태로 올린다. 같은 계정이 이미 접속 중이면 거절한다.
 // 같은 계정이 한 번에 하나만 접속하므로 대기열에서 자기 자신과 만나는 일이 없다.
+// 저장소에 쓰는 동안 다른 사람의 입력 중계가 멈추지 않도록 허브의 잠금을 풀고 저장한다.
+// 그 사이 같은 계정이 들어오지 못하게 접속 상태를 먼저 잡아 둔다.
 func (hub *Hub) Login(sub, name string, send func(message any)) (*Player, error) {
+	player := &Player{send: send}
+	if err := hub.reserve(sub, player); err != nil {
+		return nil, err
+	}
+	account, err := hub.store.Login(sub, name)
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
+	if err != nil {
+		delete(hub.online, sub)
+		return nil, err
+	}
+	player.account = account
+	send(newReady(account))
+	return player, nil
+}
+
+// reserve는 계정을 접속 상태로 잡는다. 이미 접속 중이면 거절한다.
+func (hub *Hub) reserve(sub string, player *Player) error {
 	hub.mutex.Lock()
 	defer hub.mutex.Unlock()
 	if _, exists := hub.online[sub]; exists {
-		return nil, errAlreadyOnline
+		return errAlreadyOnline
 	}
-	account, err := hub.store.Login(sub, name)
-	if err != nil {
-		return nil, err
-	}
-	player := &Player{account: account, send: send}
 	hub.online[sub] = player
-	send(newReady(account))
-	return player, nil
+	return nil
 }
 
 // Queue는 대기열에 넣고, 두 사람이 모였으면 짝을 지어 준다.
@@ -82,7 +100,7 @@ func (hub *Hub) Cancel(player *Player) {
 func (hub *Hub) Input(player *Player, frame, bits int) {
 	hub.mutex.Lock()
 	defer hub.mutex.Unlock()
-	if frame < 0 || bits < 0 || bits > maxInputBits {
+	if frame < 0 || frame > maxInputFrame || bits < 0 || bits > maxInputBits {
 		player.send(newError("입력 값이 올바르지 않습니다"))
 		return
 	}
@@ -111,13 +129,18 @@ func (hub *Hub) Report(player *Player, winner *int) {
 		return
 	}
 	if *match.reports[0] != *match.reports[1] {
-		match.finished = true
-		for _, participant := range match.players {
-			participant.send(newError("두 사람의 결과가 달라 기록하지 않았습니다"))
-		}
+		rejectMismatch(match)
 		return
 	}
 	hub.recordLocked(match, *winner)
+}
+
+// rejectMismatch는 두 사람의 보고가 달라 기록하지 않고 판을 끝낸다.
+func rejectMismatch(match *Match) {
+	match.finished = true
+	for _, participant := range match.players {
+		participant.send(newError("두 사람의 결과가 달라 기록하지 않았습니다"))
+	}
 }
 
 // Leave는 대전에서 나간다. 접속은 유지한다.
@@ -177,6 +200,8 @@ func (hub *Hub) opponentLocked(player *Player) *Player {
 }
 
 // leaveMatchLocked는 판 도중에 나가면 남은 사람의 승으로 기록한다. 이미 기록된 판은 다시 기록하지 않는다.
+// 나가는 사람이 이미 결과를 보고했다면 판은 끝난 것이므로 이탈로 기록하지 않는다.
+// 보고하지 않은 상대가 보고를 미루는 것만으로 남은 쪽의 승리를 가져가지 못하게 한다.
 func (hub *Hub) leaveMatchLocked(player *Player) {
 	match := player.match
 	if match == nil {
@@ -187,22 +212,72 @@ func (hub *Hub) leaveMatchLocked(player *Player) {
 	player.match = nil
 	opponent.match = nil
 	opponent.send(opponentLeftMessage{Type: typeOpponentLeft})
-	if !match.finished {
+	if !match.finished && match.reports[player.slot] == nil {
 		hub.recordLocked(match, opponent.slot)
 	}
 }
 
+// outcome은 승패를 저장소에 쓴 결과다. 쓰지 못했으면 err가 있다.
+type outcome struct {
+	winner, loser Account
+	err           error
+}
+
+// recordLocked는 판을 끝난 것으로 표시하고 승패를 저장소에 쓰는 일을 맡긴다.
+// 디스크에 쓰는 동안 허브의 잠금을 쥐고 있으면 다른 사람의 입력 중계가 멈추므로 따로 돌린다.
+// 같은 판이 두 번 기록되지 않게 기록이 끝나기 전에 먼저 끝난 것으로 표시한다.
+// 허브가 닫힌 뒤에는 기다리는 쪽이 없으므로 따로 돌리지 않고 그 자리에서 쓴다.
 func (hub *Hub) recordLocked(match *Match, winnerSlot int) {
-	winner, loser := match.players[winnerSlot], match.players[1-winnerSlot]
-	winnerAccount, loserAccount, err := hub.store.Record(winner.account.Sub, loser.account.Sub)
-	if err != nil {
+	match.finished = true
+	winnerSub, loserSub := match.players[winnerSlot].account.Sub, match.players[1-winnerSlot].account.Sub
+	if hub.closed {
+		hub.settleLocked(match, winnerSlot, writeOutcome(hub.store, winnerSub, loserSub))
+		return
+	}
+	hub.recording.Add(1)
+	go hub.record(match, winnerSlot, winnerSub, loserSub)
+}
+
+// writeOutcome은 승패를 저장소에 쓰고 그 결과를 묶어 돌려준다.
+func writeOutcome(store Store, winnerSub, loserSub string) outcome {
+	winner, loser, err := store.Record(winnerSub, loserSub)
+	return outcome{winner: winner, loser: loser, err: err}
+}
+
+// record는 승패를 허브의 잠금 밖에서 저장소에 쓰고, 잠금을 잡은 뒤 결과를 알린다.
+func (hub *Hub) record(match *Match, winnerSlot int, winnerSub, loserSub string) {
+	defer hub.recording.Done()
+	result := writeOutcome(hub.store, winnerSub, loserSub)
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
+	hub.settleLocked(match, winnerSlot, result)
+}
+
+// settleLocked는 저장한 결과를 두 사람에게 알린다. 쓰지 못했으면 판을 다시 기록할 수 있게 되돌린다.
+func (hub *Hub) settleLocked(match *Match, winnerSlot int, result outcome) {
+	if result.err != nil {
+		match.finished = false
 		for _, participant := range match.players {
 			participant.send(newError("승패를 기록하지 못했습니다"))
 		}
 		return
 	}
-	match.finished = true
-	winner.account, loser.account = winnerAccount, loserAccount
-	winner.send(newRecorded(winnerAccount))
-	loser.send(newRecorded(loserAccount))
+	winner, loser := match.players[winnerSlot], match.players[1-winnerSlot]
+	winner.account, loser.account = result.winner, result.loser
+	winner.send(newRecorded(result.winner))
+	loser.send(newRecorded(result.loser))
+}
+
+// Wait는 저장소에 쓰는 중인 승패 기록이 모두 끝나기를 기다린다.
+func (hub *Hub) Wait() {
+	hub.recording.Wait()
+}
+
+// Close는 허브를 닫고 저장 중인 승패 기록이 끝나기를 기다린다. 서버를 끌 때 기록이 잘리지 않게 한다.
+// 닫은 뒤에 끝나는 판은 그 자리에서 기록하므로, 기다리는 도중에 새 기록이 더해지는 일이 없다.
+func (hub *Hub) Close() {
+	hub.mutex.Lock()
+	hub.closed = true
+	hub.mutex.Unlock()
+	hub.recording.Wait()
 }
