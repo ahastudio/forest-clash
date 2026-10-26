@@ -12,7 +12,7 @@ interface Setup {
   signIn: ReturnType<typeof vi.fn>;
   opened: () => number;
   say: (body: unknown) => void;
-  /** 핑을 재는 시계를 이만큼(밀리초) 흘려보낸다. */
+  // 핑을 재는 시계를 이만큼(밀리초) 흘려보낸다.
   tick: (milliseconds: number) => void;
 }
 

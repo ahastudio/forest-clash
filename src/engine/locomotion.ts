@@ -17,7 +17,7 @@ import { stopAndRecover } from './recovery';
 import type { Fighter, World } from './types';
 import { emit } from './world';
 
-/** 도약 준비 프레임 수. */
+// 도약 준비 프레임 수.
 const JUMP_PREPARE_FRAMES = 4;
 const ROLL_FRAMES = 30;
 const ROLL_MOVING_FRAMES = 20;
@@ -40,7 +40,7 @@ function startRun(world: World, fighter: Fighter): void {
   emit(world, { type: 'dash', id: fighter.id });
 }
 
-/** 달리는 중에 앞을 누르고 있으면 계속 달리고, 놓으면 잠깐 멈춘다. */
+// 달리는 중에 앞을 누르고 있으면 계속 달리고, 놓으면 잠깐 멈춘다.
 const runOrStop = (fighter: Fighter): Partial<Fighter> =>
   forwardHeld(fighter)
     ? { velocityX: fighter.face * RUN_SPEED }
@@ -77,7 +77,7 @@ const tryContinueRun = when(
 );
 const tryStartRun = when((_world, fighter) => fighter.doubleTapForward && forwardHeld(fighter), startRun);
 
-/** 아무 입력도 없으면 선다. 앞뒤로 눌렀으면 걷는다. */
+// 아무 입력도 없으면 선다. 앞뒤로 눌렀으면 걷는다.
 const walkOrStand: Intent = (_world, fighter) => {
   const direction = (forwardHeld(fighter) ? 1 : 0) - (backHeld(fighter) ? 1 : 0);
   patch(fighter, walkMotion(fighter, direction));
@@ -94,7 +94,9 @@ const NEUTRAL_INTENTS: readonly Intent[] = [
   walkOrStand,
 ];
 
-/** 서 있거나 걷는 중에 다음 행동을 고른다. */
+/**
+ * 서 있거나 걷는 중에 다음 행동을 고른다.
+ */
 export function neutral(world: World, fighter: Fighter): void {
   if (fighter.altitude === 0) {
     NEUTRAL_INTENTS.some(intent => intent(world, fighter));
@@ -112,7 +114,9 @@ function takeOff(world: World, fighter: Fighter): void {
   emit(world, { type: 'jump', id: fighter.id, hop });
 }
 
-/** 점프 준비를 한 프레임 진행하고, 준비가 끝나면 뛰어오른다. */
+/**
+ * 점프 준비를 한 프레임 진행하고, 준비가 끝나면 뛰어오른다.
+ */
 export function updatePrejump(world: World, fighter: Fighter): void {
   fighter.elapsed++;
   if (fighter.elapsed >= JUMP_PREPARE_FRAMES) {
@@ -120,7 +124,9 @@ export function updatePrejump(world: World, fighter: Fighter): void {
   }
 }
 
-/** 구르기를 한 프레임 진행한다: 앞쪽 구간에서만 움직이고, 끝나면 멈추고 회복한다. */
+/**
+ * 구르기를 한 프레임 진행한다: 앞쪽 구간에서만 움직이고, 끝나면 멈추고 회복한다.
+ */
 export function updateRoll(_world: World, fighter: Fighter): void {
   fighter.elapsed++;
   fighter.velocityX = fighter.elapsed <= ROLL_MOVING_FRAMES ? fighter.rollDirection * fighter.face * ROLL_SPEED : 0;
@@ -129,7 +135,9 @@ export function updateRoll(_world: World, fighter: Fighter): void {
   }
 }
 
-/** 뒤로 물러나기를 한 프레임 진행한다: 후반에는 속도가 줄고, 끝나면 멈추고 회복한다. */
+/**
+ * 뒤로 물러나기를 한 프레임 진행한다: 후반에는 속도가 줄고, 끝나면 멈추고 회복한다.
+ */
 export function updateBackDash(_world: World, fighter: Fighter): void {
   fighter.elapsed++;
   if (fighter.elapsed > BACK_DASH_BRAKE_FROM) {

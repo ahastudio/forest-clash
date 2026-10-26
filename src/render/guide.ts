@@ -1,6 +1,8 @@
 import type { InputKind } from '../input/kind';
 
-/** 입력 장치마다 달라지는 안내: 타이틀 아래 문구, 일시정지 화면 아래 문구, 키보드 그림을 보여 줄지. */
+/**
+ * 입력 장치마다 달라지는 안내: 타이틀 아래 문구, 일시정지 화면 아래 문구, 키보드 그림을 보여 줄지.
+ */
 export interface Guide {
   titleHint: string;
   pauseFooter: string;

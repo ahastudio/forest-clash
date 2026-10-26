@@ -4,7 +4,9 @@ interface CredentialResponse {
   credential: string;
 }
 
-/** 구글 로그인 스크립트가 만드는 `google` 객체 중 쓰는 부분. */
+/**
+ * 구글 로그인 스크립트가 만드는 `google` 객체 중 쓰는 부분.
+ */
 export interface GoogleApi {
   accounts: {
     id: {
@@ -42,7 +44,7 @@ function scriptTag(doc: Document): HTMLScriptElement {
   return script;
 }
 
-/** 구글 로그인 스크립트를 불러온다. */
+// 구글 로그인 스크립트를 불러온다.
 function loadScript(doc: Document): Promise<void> {
   return new Promise((resolve, reject) => {
     const script = scriptTag(doc);
@@ -55,7 +57,7 @@ function loadScript(doc: Document): Promise<void> {
   });
 }
 
-/** 구글 로그인 버튼이 들어갈 안내 창. 제목과 취소 버튼이 있다. */
+// 구글 로그인 버튼이 들어갈 안내 창. 제목과 취소 버튼이 있다.
 function buildPanel(doc: Document, onCancel: () => void): Panel {
   const slot = doc.createElement('div');
   const root = backdrop(
@@ -100,7 +102,7 @@ function cancelButton(doc: Document, onCancel: () => void): HTMLElement {
   return button;
 }
 
-/** 안내 창에 구글 로그인 버튼을 보이고, 로그인하면 ID 토큰을 돌려준다. */
+// 안내 창에 구글 로그인 버튼을 보이고, 로그인하면 ID 토큰을 돌려준다.
 function askForToken(host: GoogleHost, api: GoogleApi): Promise<string> {
   return new Promise((resolve, reject) => {
     const panel = buildPanel(host.doc, () => {
@@ -133,7 +135,7 @@ export function createSignIn(host: GoogleHost): () => Promise<string> {
   };
 }
 
-/** 스크립트를 다 불러온 뒤 로그인 기능을 꺼낸다. */
+// 스크립트를 다 불러온 뒤 로그인 기능을 꺼낸다.
 async function readyApi(host: GoogleHost, script: Promise<void>): Promise<GoogleApi> {
   await script;
   const api = host.win.google;

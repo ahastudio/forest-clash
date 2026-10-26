@@ -1,7 +1,7 @@
 import type { Game } from './game';
 import type { Point } from './menu';
 
-/** 보조 키: 일시정지(Space), 소리 켜고 끄기(M), 판정 상자 표시(H). */
+// 보조 키: 일시정지(Space), 소리 켜고 끄기(M), 판정 상자 표시(H).
 const HELPER_KEYS: Record<string, (game: Game) => void> = {
   Space: game => game.togglePause(),
   KeyM: game => game.sound.toggle(),
@@ -10,10 +10,10 @@ const HELPER_KEYS: Record<string, (game: Game) => void> = {
   },
 };
 
-/** 브라우저가 화면을 스크롤하거나 하지 않도록 기본 동작을 막아야 하는 키인가. */
+// 브라우저가 화면을 스크롤하거나 하지 않도록 기본 동작을 막아야 하는 키인가.
 const blocksDefault = (code: string): boolean => code === 'Space' || code.startsWith('Arrow');
 
-/** 키를 눌렀을 때: 소리 장치를 열고, 보조 키를 처리하고, 입력으로 받는다. */
+// 키를 눌렀을 때: 소리 장치를 열고, 보조 키를 처리하고, 입력으로 받는다.
 function onKeyDown(game: Game, event: KeyboardEvent): void {
   game.sound.init();
   HELPER_KEYS[event.code]?.(game);
@@ -23,13 +23,13 @@ function onKeyDown(game: Game, event: KeyboardEvent): void {
   }
 }
 
-/** 창을 벗어나면 눌린 키를 모두 놓고, 대전 중이었으면 일시정지한다. */
+// 창을 벗어나면 눌린 키를 모두 놓고, 대전 중이었으면 일시정지한다.
 function onLeave(game: Game): void {
   game.keyboard.releaseAll();
   game.pauseIfFighting();
 }
 
-/** 캔버스 위의 포인터 위치를 캔버스 그림 좌표로 바꾼다. 캔버스는 화면에서 크기가 달라지므로 비율로 옮긴다. */
+// 캔버스 위의 포인터 위치를 캔버스 그림 좌표로 바꾼다. 캔버스는 화면에서 크기가 달라지므로 비율로 옮긴다.
 function canvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
   const box = canvas.getBoundingClientRect();
   return {
@@ -38,7 +38,9 @@ function canvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
   };
 }
 
-/** 마우스와 터치가 캔버스를 올리고 누르는 것을 타이틀 메뉴에 연결한다. */
+/**
+ * 마우스와 터치가 캔버스를 올리고 누르는 것을 타이틀 메뉴에 연결한다.
+ */
 export function attachMenuPointer(game: Game, canvas: HTMLCanvasElement): void {
   canvas.addEventListener('pointermove', event => game.menu.hover(canvasPoint(canvas, event)));
   canvas.addEventListener('pointerdown', event => {
@@ -47,7 +49,9 @@ export function attachMenuPointer(game: Game, canvas: HTMLCanvasElement): void {
   });
 }
 
-/** 키보드와 창 이벤트를 게임에 연결한다. */
+/**
+ * 키보드와 창 이벤트를 게임에 연결한다.
+ */
 export function attachControls(game: Game, win: Window, doc: Document): void {
   win.addEventListener('keydown', event => onKeyDown(game, event));
   win.addEventListener('keyup', event => game.keyboard.release(event.code));

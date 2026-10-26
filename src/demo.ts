@@ -6,9 +6,9 @@ import { patch } from './patch';
 import type { Effects } from './render/effects';
 import { Reactions } from './render/reactions';
 
-/** 컴퓨터의 난이도: 가장 쉬워서 반응이 느리고 덜 공격적이라 가볍게 싸우는 모습이 된다. */
+// 컴퓨터의 난이도: 가장 쉬워서 반응이 느리고 덜 공격적이라 가볍게 싸우는 모습이 된다.
 const EASIEST = 0;
-/** 체력이 이 비율 아래로 내려가면 다시 채워서 K.O.가 나지 않고 싸움이 이어진다. */
+// 체력이 이 비율 아래로 내려가면 다시 채워서 K.O.가 나지 않고 싸움이 이어진다.
 const REFILL_BELOW = 0.4;
 
 /**
@@ -26,7 +26,9 @@ export class TitleDemo {
     this.engine.newMatch('cpu');
   }
 
-  /** 한 프레임 진행하고, 판이 끝났으면 새 판을 열며, 체력이 낮아졌으면 채운다. */
+  /**
+   * 한 프레임 진행하고, 판이 끝났으면 새 판을 열며, 체력이 낮아졌으면 채운다.
+   */
   step(): void {
     const inputs: Inputs = [this.first(0), this.second(1)];
     this.engine.step(inputs);

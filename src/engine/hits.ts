@@ -25,7 +25,7 @@ function resolveStrike(world: World, strike: Strike): void {
 const isOpenWindow = ({ attacker, window }: Strike): boolean =>
   window >= 0 && !(attacker.landedWindows & (1 << window));
 
-/** 띄워진 상대는 저글이 되는 기술(특수기, 공중 기술)만 맞고, 저글 한도가 있다. */
+// 띄워진 상대는 저글이 되는 기술(특수기, 공중 기술)만 맞고, 저글 한도가 있다.
 const canJuggle = (defender: Fighter, move: Move): boolean =>
   !!(move.juggles || move.air) && defender.juggleCount < JUGGLE_LIMIT;
 
@@ -36,7 +36,7 @@ function isReachable({ defender, move }: Strike): boolean {
   return !defender.launched || canJuggle(defender, move);
 }
 
-/** 이 프레임에 판정 상자가 상대의 맞을 수 있는 상자에 닿는가. */
+// 이 프레임에 판정 상자가 상대의 맞을 수 있는 상자에 닿는가.
 function connects(strike: Strike): boolean {
   const box = hitboxOf(strike.attacker, strike.move);
   if (!box || !isOpenWindow(strike) || !isReachable(strike)) {
@@ -50,7 +50,7 @@ function buildStrike(world: World, attacker: Fighter): Strike | null {
   return move ? { attacker, defender: opponentOf(world, attacker), move, window: activeWindow(attacker) } : null;
 }
 
-/** 잡기는 이 자리에서 바로 처리하고, 나머지는 닿았으면 타격 목록에 올린다. */
+// 잡기는 이 자리에서 바로 처리하고, 나머지는 닿았으면 타격 목록에 올린다.
 function strikesOf(world: World, attacker: Fighter): Strike[] {
   const strike = buildStrike(world, attacker);
   if (strike?.move.grab) {

@@ -41,14 +41,14 @@ const RAYS = 8;
 
 const times = <T>(count: number, make: (index: number) => T): T[] => Array.from({ length: count }, (_, i) => make(i));
 
-/** 별 모양의 꼭짓점: 바깥 꼭짓점과 안쪽 꼭짓점이 번갈아 열 개. */
+// 별 모양의 꼭짓점: 바깥 꼭짓점과 안쪽 꼭짓점이 번갈아 열 개.
 const STAR_POINTS: readonly Point[] = times(STAR_TIPS * 2, i => {
   const radius = i % 2 ? STAR_INNER : STAR_OUTER;
   const angle = (i * Math.PI) / STAR_TIPS;
   return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
 });
 
-/** 먼지 한 알. */
+// 먼지 한 알.
 const dustParticle = (x: number, y: number): Particle => ({
   x: x + (Math.random() - 0.5) * 18,
   y: y - 2,
@@ -90,7 +90,7 @@ const confettiPiece = (index: number): Particle => ({
   color: CONFETTI_COLORS[index % CONFETTI_COLORS.length] as string,
 });
 
-/** 별: 속을 칠하고 어두운 테두리를 두른다. */
+// 별: 속을 칠하고 어두운 테두리를 두른다.
 function drawStar(g: Ctx, p: Particle): void {
   withState(g, () => {
     g.translate(p.x, p.y);
@@ -124,7 +124,7 @@ function drawParticle(g: Ctx, p: Particle): void {
   }
 }
 
-/** 충격 고리: 퍼져 나가며 옅어지는 흰 고리 안쪽에 색 고리가 하나 더 있다. */
+// 충격 고리: 퍼져 나가며 옅어지는 흰 고리 안쪽에 색 고리가 하나 더 있다.
 function drawRing(g: Ctx, burst: Burst): void {
   const k = burst.life / burst.max;
   const radius = Math.max(0, (1 - k) * (burst.big ? 84 : 46) + 8);
@@ -134,7 +134,7 @@ function drawRing(g: Ctx, burst: Burst): void {
   });
 }
 
-/** 방사선 한 줄. 남은 수명이 적을수록 바깥으로 멀어진다. */
+// 방사선 한 줄. 남은 수명이 적을수록 바깥으로 멀어진다.
 function strokeRay(g: Ctx, burst: Burst, index: number): void {
   const k = burst.life / burst.max;
   const angle = (index * Math.PI) / 4 + 0.2;
@@ -154,7 +154,9 @@ function drawLines(g: Ctx, burst: Burst): void {
 
 const BURST_DRAWERS = { ring: drawRing, lines: drawLines };
 
-/** 화면 효과: 먼지, 불꽃, 별, 충격 고리, 결과 화면의 색종이. 글자는 쓰지 않는다. */
+/**
+ * 화면 효과: 먼지, 불꽃, 별, 충격 고리, 결과 화면의 색종이. 글자는 쓰지 않는다.
+ */
 export class Effects {
   particles: Particle[] = [];
   bursts: Burst[] = [];
@@ -167,7 +169,9 @@ export class Effects {
     this.bursts.push({ kind: 'ring', ...at, life: style.life, max: style.life, big: style.big, color: style.color });
   }
 
-  /** 타격 불꽃: 고리, 방사선, 흰 알갱이 다섯, 색 별 넷. */
+  /**
+   * 타격 불꽃: 고리, 방사선, 흰 알갱이 다섯, 색 별 넷.
+   */
   impact(at: Point, power: number, color?: string): void {
     this.ring(at, { life: 14, big: power > 9, color });
     this.bursts.push({ kind: 'lines', ...at, life: 10, max: 10 });
@@ -175,14 +179,16 @@ export class Effects {
     this.particles.push(...times(COLOR_SPARKS, () => starSpark(at, color ?? DEFAULT_SPARK_COLOR)));
   }
 
-  /** 결과 화면에서 하늘에서 색종이를 떨어뜨린다. */
+  /**
+   * 결과 화면에서 하늘에서 색종이를 떨어뜨린다.
+   */
   confetti(): void {
     if (this.particles.length < CONFETTI_LIMIT) {
       this.particles.push(...times(CONFETTI_PIECES, confettiPiece));
     }
   }
 
-  /** 알갱이를 한 걸음 움직이고(gravity가 null이면 움직이지 않고) 수명이 다한 것을 치운다. */
+  // 알갱이를 한 걸음 움직이고(gravity가 null이면 움직이지 않고) 수명이 다한 것을 치운다.
   private advance(gravity: number | null): void {
     for (const p of this.particles) {
       if (gravity !== null) {
@@ -192,7 +198,9 @@ export class Effects {
     this.particles = this.particles.filter(p => p.life > 0);
   }
 
-  /** 타이틀에서는 움직이지 않고 치우기만 한다. */
+  /**
+   * 타이틀에서는 움직이지 않고 치우기만 한다.
+   */
   advanceTitle(): void {
     this.advance(null);
   }

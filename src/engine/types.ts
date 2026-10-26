@@ -5,7 +5,7 @@ type Facing = 1 | -1;
 export type Button = 'A' | 'B' | 'C' | 'D';
 type Direction = 'l' | 'r' | 'u' | 'd';
 
-/** 누름 여부. 사람의 키 입력은 불리언, 컴퓨터 상대는 0 또는 1로 낸다. */
+// 누름 여부. 사람의 키 입력은 불리언, 컴퓨터 상대는 0 또는 1로 낸다.
 type Flag = boolean | number;
 export type PadInput = Record<Direction | Button, Flag>;
 export type Pad = Record<Direction | Button, boolean>;
@@ -37,7 +37,9 @@ interface Contact {
   frame?: number;
 }
 
-/** 위치와 몸 상태: 어디에 서 있고 어느 쪽을 보며 체력과 분노가 얼마인가. */
+/**
+ * 위치와 몸 상태: 어디에 서 있고 어느 쪽을 보며 체력과 분노가 얼마인가.
+ */
 export interface FighterBody {
   id: PlayerId;
   x: number;
@@ -50,7 +52,9 @@ export interface FighterBody {
   rage: number;
 }
 
-/** 지금 하는 행동과 그 진행: 상태, 기술, 경직, 무적. */
+/**
+ * 지금 하는 행동과 그 진행: 상태, 기술, 경직, 무적.
+ */
 export interface FighterAction {
   state: FighterState;
   elapsed: number;
@@ -66,7 +70,9 @@ export interface FighterAction {
   knockedDown: boolean;
 }
 
-/** 입력 읽기: 지금 누른 것, 방금 누른 것, 기록, 두 번 누르기. */
+/**
+ * 입력 읽기: 지금 누른 것, 방금 누른 것, 기록, 두 번 누르기.
+ */
 export interface InputTracking {
   input: Pad;
   justPressed: ButtonCounts;
@@ -80,7 +86,9 @@ export interface InputTracking {
   doubleTapBack: boolean;
 }
 
-/** 점프, 맞은 모습, 구르기, 잡힘처럼 상태에 딸린 표시와 방향. */
+/**
+ * 점프, 맞은 모습, 구르기, 잡힘처럼 상태에 딸린 표시와 방향.
+ */
 export interface FighterReactions {
   jumpDirection: number;
   airAttackUsed: boolean;
@@ -89,9 +97,13 @@ export interface FighterReactions {
   hitCrouching: boolean;
   gettingUp: boolean;
   rollDirection: number;
-  /** 이 캐릭터를 잡고 있는(또는 잡힌) 상대의 번호. 없으면 -1. */
+  /**
+   * 이 캐릭터를 잡고 있는(또는 잡힌) 상대의 번호. 없으면 -1.
+   */
   heldBy: number;
-  /** 잡혀서 들려 올라가기 시작한 가로 위치. */
+  /**
+   * 잡혀서 들려 올라가기 시작한 가로 위치.
+   */
   grabStartX?: number;
 }
 

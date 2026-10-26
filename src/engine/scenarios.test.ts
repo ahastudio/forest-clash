@@ -31,10 +31,8 @@ describe('기술의 발동', () => {
   });
 });
 
-/**
- * 앞+강공격은 잡기 범위(THROW_RANGE) 밖에서만 나간다. 막는 쪽은 뒤로 물러나므로,
- * 막는 경우는 방어자를 오른쪽 벽에 붙여 물러나지 못하게 하고 잰다.
- */
+// 앞+강공격은 잡기 범위(THROW_RANGE) 밖에서만 나간다. 막는 쪽은 뒤로 물러나므로,
+// 막는 경우는 방어자를 오른쪽 벽에 붙여 물러나지 못하게 하고 잰다.
 function duelFor(id: MoveId, retreating = false): Duel {
   if (id !== 'c6' && id !== 'd6') {
     return setup((MOVES[id].hitboxRange[1] ?? 0) - 8);
@@ -47,7 +45,7 @@ function duelFor(id: MoveId, retreating = false): Duel {
   return duel;
 }
 
-/** 접촉한 뒤 공격자와 방어자 중 누가 몇 프레임 먼저 움직일 수 있게 되는가. */
+// 접촉한 뒤 공격자와 방어자 중 누가 몇 프레임 먼저 움직일 수 있게 되는가.
 function measureAdvantage(id: MoveId, button: Button, extra: Partial<PadInput>, block: boolean): number | null {
   const duel = duelFor(id, block);
   const defend = block ? { r: 1, d: MOVES[id].kind === 'low' ? 1 : 0 } : {};

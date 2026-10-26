@@ -1,4 +1,6 @@
-/** 테스트용 가짜 오디오 장치. 어떤 소리를 어떻게 이었는지 기록만 한다. */
+/**
+ * 테스트용 가짜 오디오 장치. 어떤 소리를 어떻게 이었는지 기록만 한다.
+ */
 class FakeParam {
   value = 0;
   readonly events: [string, number, number][] = [];
@@ -105,5 +107,7 @@ export class FakeOfflineContext extends FakeContext {
   }
 }
 
-/** 타입 검사를 통과시키기 위한 변환. */
+/**
+ * 시험용 가짜(fake)를 원하는 오디오 타입으로 본다. 가짜가 시험이 쓰는 부분만 갖췄을 때 타입 검사를 통과시키려고 쓴다.
+ */
 export const asAudio = <T>(fake: unknown): T => fake as T;

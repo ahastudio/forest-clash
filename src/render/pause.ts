@@ -40,7 +40,7 @@ function wrapHelp(g: Ctx, body: string): string[] {
   return lines;
 }
 
-/** 안내 한 줄(제목과 본문)을 쓰고, 다음 줄이 시작할 세로 위치를 돌려준다. */
+// 안내 한 줄(제목과 본문)을 쓰고, 다음 줄이 시작할 세로 위치를 돌려준다.
 function drawHelpRow(g: Ctx, [head, body]: readonly [string, string], y: number): number {
   smallText(g, head, { x: 40, y, size: 15, color: GOLD, align: 'left', weight: 800 });
   const lines = wrapHelp(g, body);
@@ -50,7 +50,7 @@ function drawHelpRow(g: Ctx, [head, body]: readonly [string, string], y: number)
   return y + lines.length * HELP_LINE_HEIGHT + HELP_ROW_GAP;
 }
 
-/** 화면에 그리는 키: 방향 넷과 버튼 넷. */
+// 화면에 그리는 키: 방향 넷과 버튼 넷.
 type PadControl = 'up' | 'left' | 'down' | 'right' | 'weakPunch' | 'strongPunch' | 'weakKick' | 'strongKick';
 
 interface KeySpec {
@@ -60,7 +60,7 @@ interface KeySpec {
   color?: string;
 }
 
-/** 방향키 네 개와 버튼 네 개의 배치. 위 줄은 약펀치(왼쪽)와 강펀치(오른쪽), 아래 줄은 약킥(왼쪽)과 강킥(오른쪽). */
+// 방향키 네 개와 버튼 네 개의 배치. 위 줄은 약펀치(왼쪽)와 강펀치(오른쪽), 아래 줄은 약킥(왼쪽)과 강킥(오른쪽).
 const PAD_KEYS: readonly KeySpec[] = [
   { dx: 44, dy: 0, control: 'up' },
   { dx: 0, dy: 38, control: 'left' },
@@ -111,7 +111,7 @@ function drawPadCaptions(g: Ctx, origin: Point): void {
   }
 }
 
-/** 1P(방향키와 I O K L)와 2P(W A S D와 R T F G)의 키 이름. */
+// 1P(방향키와 I O K L)와 2P(W A S D와 R T F G)의 키 이름.
 const PADS: readonly { centerX: number; labels: Record<PadControl, string> }[] = [
   {
     centerX: 250,
@@ -175,7 +175,9 @@ function drawKeyboardGuide(g: Ctx): void {
   drawPads(g);
 }
 
-/** 일시정지 화면: 조작법 안내. 키보드 그림은 키보드를 쓸 때만 보이고, 아래 문구는 입력 장치마다 다르다. */
+/**
+ * 일시정지 화면: 조작법 안내. 키보드 그림은 키보드를 쓸 때만 보이고, 아래 문구는 입력 장치마다 다르다.
+ */
 export function drawPause({ g, guide }: View, version: string): void {
   drawPauseBackdrop(g);
   if (guide.showKeyboards) {

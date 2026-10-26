@@ -14,7 +14,9 @@ interface Setup {
   level?: number;
 }
 
-/** 내가 왼쪽(오른쪽을 봄), 상대가 dist만큼 오른쪽에 서 있는 판단 상황을 만든다. */
+/**
+ * 내가 왼쪽(오른쪽을 봄), 상대가 dist만큼 오른쪽에 서 있는 판단 상황을 만든다.
+ */
 export function situation({ me = {}, foe = {}, dist = 100, wait = 0, level = 2 }: Setup = {}): Context {
   const mind = newMind();
   mind.wait = wait;
@@ -29,7 +31,9 @@ export function situation({ me = {}, foe = {}, dist = 100, wait = 0, level = 2 }
   };
 }
 
-/** Math.random이 차례로 돌려줄 값을 정한다. 다 쓰면 0.5를 돌려준다. */
+/**
+ * Math.random이 차례로 돌려줄 값을 정한다. 다 쓰면 0.5를 돌려준다.
+ */
 export function rolls(...values: number[]): ReturnType<typeof vi.spyOn> {
   const queue = [...values];
   return vi.spyOn(Math, 'random').mockImplementation(() => queue.shift() ?? 0.5);

@@ -21,7 +21,7 @@ function timing(spec: MoveSpec): Pick<Move, 'start' | 'end' | 'total'> {
   return { start: spec.start, end: spec.start + spec.active - 1, total: spec.start + spec.active + spec.recovery };
 }
 
-/** 이득에서 경직을 계산한다: 경직 = 이득 + 판정 + 후딜. 쓰러뜨리는 기술은 맞음 경직이 없다. */
+// 이득에서 경직을 계산한다: 경직 = 이득 + 판정 + 후딜. 쓰러뜨리는 기술은 맞음 경직이 없다.
 function stunsFromAdvantage(spec: GroundSpec): Pick<Move, 'blockstun' | 'hitstun'> {
   const recovery = spec.active + spec.recovery;
   return {

@@ -8,7 +8,7 @@ import { exchangeRage, recoil, registerContact } from './strike';
 import type { Fighter, GameEvent, World } from './types';
 import { emit } from './world';
 
-/** 맞은 결과: 카운터 히트인가, 입힌 피해, 맞기 전에 공중에 있었는가, 불꽃의 위치. */
+// 맞은 결과: 카운터 히트인가, 입힌 피해, 맞기 전에 공중에 있었는가, 불꽃의 위치.
 interface Outcome {
   counter: boolean;
   damage: number;
@@ -16,7 +16,7 @@ interface Outcome {
   spark: Spark;
 }
 
-/** 날아가는 모습: 띄우는 속도, 쓰러뜨리는가, 맞기 전에 공중이었는가, 날아가는 방향. */
+// 날아가는 모습: 띄우는 속도, 쓰러뜨리는가, 맞기 전에 공중이었는가, 날아가는 방향.
 interface Flight {
   launch: number;
   knockdown: boolean;
@@ -42,7 +42,7 @@ const ATTACKER_RAGE_RATE = 1.0;
 const HIT_PUSH_SHARE = 0.25;
 const HIT_PUSH_BOOST = 1.2;
 
-/** 기술을 쓰는 중(발동~판정)에 맞히면 카운터 히트다. */
+// 기술을 쓰는 중(발동~판정)에 맞히면 카운터 히트다.
 function isCounterHit(defender: Fighter): boolean {
   const move = attackMove(defender);
   return !!move && defender.elapsed <= move.end;
@@ -51,7 +51,7 @@ function isCounterHit(defender: Fighter): boolean {
 const scaleFor = ({ count, step }: { count: number; step: number }): number =>
   Math.max(MIN_DAMAGE_SCALE, 1 - step * count);
 
-/** 콤보가 길수록, 공중에서 여러 번 맞을수록 피해가 줄어든다(최소 절반). */
+// 콤보가 길수록, 공중에서 여러 번 맞을수록 피해가 줄어든다(최소 절반).
 function damageScale(world: World, { attacker, defender }: Strike): number {
   const hitsSoFar = world.comboTimer[attacker.id] > 0 ? world.comboCount[attacker.id] : 0;
   return (
@@ -60,7 +60,7 @@ function damageScale(world: World, { attacker, defender }: Strike): number {
   );
 }
 
-/** 카운터 히트는 피해가 늘어난다. */
+// 카운터 히트는 피해가 늘어난다.
 function strikeDamage(world: World, strike: Strike, { counter }: Pick<Outcome, 'counter'>): number {
   const base = strike.move.windowDamages?.[strike.window] ?? strike.move.damage;
   return Math.max(1, Math.round(base * damageScale(world, strike) * (counter ? COUNTER_DAMAGE_RATE : 1)));
@@ -76,7 +76,7 @@ function hitOutcome(world: World, strike: Strike, spark: Spark): Outcome {
   };
 }
 
-/** 이 타격이 상대를 띄우는 속도. 띄우지 않으면 0. */
+// 이 타격이 상대를 띄우는 속도. 띄우지 않으면 0.
 function launchSpeed({ move, window }: Strike): number {
   if (move.launchSpeed) {
     return move.launchSpeed;
@@ -85,7 +85,7 @@ function launchSpeed({ move, window }: Strike): number {
   return move.finalLaunchSpeed && lastWindow ? move.finalLaunchSpeed : 0;
 }
 
-/** 맞은 쪽이 입는 몸의 변화. 앉아 있었는지는 자세가 바뀌기 전에 기록한다. */
+// 맞은 쪽이 입는 몸의 변화. 앉아 있었는지는 자세가 바뀌기 전에 기록한다.
 function injure(defender: Fighter, damage: number): void {
   const crouching = defender.state === 'crouch' || (defender.state === 'blockstun' && defender.guardingCrouched);
   defender.hp -= damage;
@@ -97,14 +97,14 @@ function injure(defender: Fighter, damage: number): void {
   });
 }
 
-/** 날아가는 속도: 띄우면 띄우는 속도, 쓰러뜨리면 빠르게 솟고, 공중에서 맞으면 지금 속도를 지킨다. */
+// 날아가는 속도: 띄우면 띄우는 속도, 쓰러뜨리면 빠르게 솟고, 공중에서 맞으면 지금 속도를 지킨다.
 function flightVelocity(defender: Fighter, flight: Flight): Pick<Fighter, 'velocityX' | 'velocityY'> {
   const { launch, knockdown, direction } = flight;
   const velocityY = launch || (knockdown ? KNOCKDOWN_LAUNCH_SPEED : Math.max(defender.velocityY, AIR_JUGGLE_MIN_SPEED));
   return { velocityY, velocityX: direction * (launch || !knockdown ? LAUNCH_DRIFT : KNOCKDOWN_DRIFT) };
 }
 
-/** 띄우거나 쓰러뜨리거나 공중에서 맞은 경우: 땅에 닿을 때까지 날아간다. */
+// 띄우거나 쓰러뜨리거나 공중에서 맞은 경우: 땅에 닿을 때까지 날아간다.
 function sendFlying(defender: Fighter, flight: Flight): void {
   const rising: Partial<Fighter> = {
     state: 'hitstun',
@@ -117,7 +117,7 @@ function sendFlying(defender: Fighter, flight: Flight): void {
   patch(defender, { ...flightVelocity(defender, flight), ...rising });
 }
 
-/** 땅에서 맞고 잠시 굳는다. 카운터 히트는 더 오래 굳는다. */
+// 땅에서 맞고 잠시 굳는다. 카운터 히트는 더 오래 굳는다.
 function staggerDefender(strike: Strike, { counter }: Pick<Outcome, 'counter'>): void {
   const { attacker, defender, move } = strike;
   const push = directionToward(attacker, defender) * move.pushback * (1 - KNOCKBACK_DECAY) * HIT_PUSH_BOOST;
@@ -144,11 +144,11 @@ function reactToHit(strike: Strike, outcome: Outcome): void {
   }
 }
 
-/** 카운터 히트는 타격 정지가 더 길다. */
+// 카운터 히트는 타격 정지가 더 길다.
 const hitstopFor = (move: Move, { counter }: Pick<Outcome, 'counter'>): number =>
   counter ? move.hitstop + COUNTER_HITSTOP_BONUS : move.hitstop;
 
-/** 맞힌 쪽의 보상: 게이지, 콤보, 취소 가능 표시, 타격 정지. */
+// 맞힌 쪽의 보상: 게이지, 콤보, 취소 가능 표시, 타격 정지.
 function rewardHit(world: World, strike: Strike, outcome: Outcome): void {
   exchangeRage(strike, {
     defenderGain: outcome.damage * VICTIM_RAGE_RATE,
@@ -173,13 +173,15 @@ function knockOutIfDefeated(world: World, { attacker, defender }: Strike): void 
   knockOut(world, defender, directionToward(attacker, defender));
 }
 
-/** 맞았다는 사건을 알리고, 체력이 다했으면 쓰러뜨린다. */
+// 맞았다는 사건을 알리고, 체력이 다했으면 쓰러뜨린다.
 function announceHit(world: World, strike: Strike, outcome: Outcome): void {
   emit(world, hitEvent(strike, outcome));
   knockOutIfDefeated(world, strike);
 }
 
-/** 타격이 들어갔다: 피해, 반응, 보상, 사건 알림을 차례로 처리한다. */
+/**
+ * 타격이 들어갔다: 피해, 반응, 보상, 사건 알림을 차례로 처리한다.
+ */
 export function landStrike(world: World, strike: Strike, spark: Spark): void {
   const outcome = hitOutcome(world, strike, spark);
   injure(strike.defender, outcome.damage);

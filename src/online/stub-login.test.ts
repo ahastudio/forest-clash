@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createStubSignIn } from './stub-login';
 
-/** 정해 둔 값을 차례로 내는 난수. */
+// 정해 둔 값을 차례로 내는 난수.
 const sequence = (...values: number[]) => {
   let index = 0;
   return () => values[index++ % values.length] ?? 0;

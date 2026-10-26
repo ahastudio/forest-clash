@@ -7,17 +7,17 @@ import type { Ctx } from '../render/layout';
 import { Sprites } from '../render/sprites';
 import type { View } from '../render/view';
 
-/** 호출 한 번의 기록: 이름과 인자. 속성을 바꾼 것은 `set 속성이름`으로 적는다. */
+// 호출 한 번의 기록: 이름과 인자. 속성을 바꾼 것은 `set 속성이름`으로 적는다.
 type Call = readonly [name: string, ...args: unknown[]];
 
 interface FakeCanvas {
   g: Ctx;
   calls: Call[];
-  /** 이름이 name인 호출들의 인자 목록. */
+  // 이름이 name인 호출들의 인자 목록.
   of(name: string): unknown[][];
-  /** 글자를 쓴 호출(fillText)에서 쓴 글자만 모은다. */
+  // 글자를 쓴 호출(fillText)에서 쓴 글자만 모은다.
   texts(): string[];
-  /** 속성을 마지막으로 바꾼 값. */
+  // 속성을 마지막으로 바꾼 값.
   last(property: string): unknown;
 }
 
@@ -29,7 +29,9 @@ class FakeGradient {
   }
 }
 
-/** 그린 것을 기록만 하는 가짜 캔버스 그리기 도구. */
+/**
+ * 그린 것을 기록만 하는 가짜 캔버스 그리기 도구.
+ */
 export function fakeCanvas(): FakeCanvas {
   const calls: Call[] = [];
   const values = new Map<string, unknown>();
@@ -66,7 +68,7 @@ export function fakeCanvas(): FakeCanvas {
   };
 }
 
-/** 불러오기가 끝났는지를 정할 수 있는 가짜 그림. */
+// 불러오기가 끝났는지를 정할 수 있는 가짜 그림.
 interface FakeImage {
   src: string;
   complete: boolean;
@@ -91,7 +93,9 @@ interface TestView {
   engine: Engine;
 }
 
-/** 그리기 테스트용 View. 엔진은 진짜이고, 그림은 모두 불러온 것으로 본다. */
+/**
+ * 그리기 테스트용 View. 엔진은 진짜이고, 그림은 모두 불러온 것으로 본다.
+ */
 export function makeView(
   options: { loaded?: boolean; now?: number; input?: InputKind; notice?: string; ping?: number } = {},
 ): TestView {

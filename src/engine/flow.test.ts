@@ -9,7 +9,7 @@ const lethal = (duel: Duel): void => {
   drive(duel, 10, tap('A'));
 };
 
-/** 한 라운드를 K.O.로 끝내고 다음 안내가 끝날 때까지 흘려보낸다. */
+// 한 라운드를 K.O.로 끝내고 다음 안내가 끝날 때까지 흘려보낸다.
 function finishRoundByKnockOut(duel: Duel): void {
   lethal(duel);
   drive(duel, 400);

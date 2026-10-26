@@ -16,7 +16,7 @@ const INVINCIBLE_BLINK_FRAMES = 3;
 const HURT_SQUASH = 0.12;
 const SPRITE_PIXELS = SPRITE_SIZE * SPRITE_SCALE;
 
-/** 발밑 그림자. 높이 떠 있을수록 작고 옅다. */
+// 발밑 그림자. 높이 떠 있을수록 작고 옅다.
 function drawShadow({ g }: View, fighter: Fighter): void {
   const height = Math.max(0, Math.min(1, fighter.altitude / SHADOW_FADE_HEIGHT));
   withState(g, () => {
@@ -27,7 +27,7 @@ function drawShadow({ g }: View, fighter: Fighter): void {
   });
 }
 
-/** 분노 게이지가 가득이면 몸 뒤에 주황빛이 맥동한다. */
+// 분노 게이지가 가득이면 몸 뒤에 주황빛이 맥동한다.
 function drawRageAura({ g, now }: View): void {
   withState(g, () => {
     g.globalAlpha = 0.22 + 0.1 * Math.sin(now / 90);
@@ -38,7 +38,7 @@ function drawRageAura({ g, now }: View): void {
   });
 }
 
-/** 맞은 직후에는 찌그러졌다 펴지고, 처음에는 하얗게 번쩍인다. */
+// 맞은 직후에는 찌그러졌다 펴지고, 처음에는 하얗게 번쩍인다.
 function applyHurtLook(g: Ctx, fighter: Fighter): void {
   const k = fighter.hurtFlash / HURT_FLASH_FRAMES;
   if (fighter.hurtFlash > 0) {
@@ -49,7 +49,7 @@ function applyHurtLook(g: Ctx, fighter: Fighter): void {
   }
 }
 
-/** 캐릭터의 자리로 옮기고, 바라보는 방향으로 뒤집고, 맞음과 무적에 따른 모습을 입힌다. */
+// 캐릭터의 자리로 옮기고, 바라보는 방향으로 뒤집고, 맞음과 무적에 따른 모습을 입힌다.
 function placeAndTint(g: Ctx, fighter: Fighter, frame: number): void {
   g.translate(fighter.x, GROUND_Y - fighter.altitude);
   g.scale(fighter.face, 1);
@@ -67,13 +67,15 @@ function drawSprite(view: View, fighter: Fighter, image: HTMLImageElement): void
   view.g.drawImage(image, -200 * SPRITE_SCALE, -360 * SPRITE_SCALE, SPRITE_PIXELS, SPRITE_PIXELS);
 }
 
-/** 지금 자세의 그림. 아직 불러오지 못했으면 서 있는 그림으로 대신한다. */
+// 지금 자세의 그림. 아직 불러오지 못했으면 서 있는 그림으로 대신한다.
 function fighterImage({ sprites, engine }: View, fighter: Fighter): HTMLImageElement | null {
   const kind = LOOK[fighter.id].kind;
   return sprites.pose(kind, poseKey(fighter, engine.frame)) ?? sprites.pose(kind, 'idle');
 }
 
-/** 캐릭터를 그림자와 함께 그린다. 그림이 아직 없으면 그림자만 그린다. */
+/**
+ * 캐릭터를 그림자와 함께 그린다. 그림이 아직 없으면 그림자만 그린다.
+ */
 export function drawFighter(view: View, fighter: Fighter): void {
   const image = fighterImage(view, fighter);
   drawShadow(view, fighter);
@@ -100,7 +102,7 @@ function strokeAttackBox({ g, engine }: View, fighter: Fighter): void {
   }
 }
 
-/** 캐릭터의 기준점(발 아래 가운데)을 작은 노란 점으로 표시한다. */
+// 캐릭터의 기준점(발 아래 가운데)을 작은 노란 점으로 표시한다.
 function drawAnchor(g: Ctx, fighter: Fighter): void {
   g.fillStyle = '#ffd54a';
   g.fillRect(fighter.x - 3, GROUND_Y - fighter.altitude - 3, 6, 6);
@@ -114,13 +116,15 @@ function drawFighterBoxes(view: View, fighter: Fighter): void {
   drawAnchor(view.g, fighter);
 }
 
-/** 바닥선: 판정 상자가 바닥 기준으로 그려졌는지 눈으로 확인할 수 있다. */
+// 바닥선: 판정 상자가 바닥 기준으로 그려졌는지 눈으로 확인할 수 있다.
 function drawGroundLine(g: Ctx): void {
   g.strokeStyle = '#ffffffaa';
   strokeSegment(g, { x: 0, y: GROUND_Y }, { x: ARENA_WIDTH, y: GROUND_Y });
 }
 
-/** 판정 상자 표시(H 키): 파란 상자가 맞을 수 있는 곳, 빨간 상자가 공격이다. */
+/**
+ * 판정 상자 표시(H 키): 파란 상자가 맞을 수 있는 곳, 빨간 상자가 공격이다.
+ */
 export function drawDebugBoxes(view: View): void {
   view.g.lineWidth = 2;
   for (const fighter of view.engine.fighters) {

@@ -1,4 +1,6 @@
-/** 대상에 없는 이름이 changes에 끼어 있으면 컴파일러가 알려 주기 위한 검사. */
+/**
+ * 대상에 없는 이름이 changes에 끼어 있으면 컴파일러가 알려 주기 위한 검사.
+ */
 type NoExtraKeys<Target, Changes> = Changes & Record<Exclude<keyof Changes, keyof Target>, never>;
 
 /**

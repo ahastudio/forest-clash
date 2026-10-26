@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fakeCanvas } from './testing/canvas';
 
-/** 화면 조작 요소(조이스틱, 버튼)를 대신하는 가짜 요소. 이벤트를 받기만 한다. */
+// 화면 조작 요소(조이스틱, 버튼)를 대신하는 가짜 요소. 이벤트를 받기만 한다.
 const touchElement = { addEventListener: () => undefined };
 
-/** 버전 표시(meta)는 version으로 돌려주고, 그 밖의 요소는 화면 조작 요소로 돌려준다. */
+// 버전 표시(meta)는 version으로 돌려주고, 그 밖의 요소는 화면 조작 요소로 돌려준다.
 const findElement = (version: string | null) => (selector: string) =>
   selector.startsWith('meta') ? (version === null ? null : { content: version }) : touchElement;
 
-/** 터치 기기가 아닌 화면을 대신하는 가짜 matchMedia. */
+// 터치 기기가 아닌 화면을 대신하는 가짜 matchMedia.
 const matchMedia = () => ({ matches: false });
 
 afterEach(() => {

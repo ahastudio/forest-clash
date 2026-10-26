@@ -7,7 +7,7 @@ import { Effects } from './render/effects';
 
 afterEach(() => vi.restoreAllMocks());
 
-/** 같은 순서로 같은 값을 내는 난수: 시험이 언제나 같은 결과가 나오게 한다. */
+// 같은 순서로 같은 값을 내는 난수: 시험이 언제나 같은 결과가 나오게 한다.
 function seededRandom(): () => number {
   let state = 12345;
   return () => {

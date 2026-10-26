@@ -1,4 +1,6 @@
-/** 소리를 이루는 목소리 하나. 높이가 from에서 to로 변하며 duration초 동안 울리고 서서히 줄어든다. */
+/**
+ * 소리를 이루는 목소리 하나. 높이가 from에서 to로 변하며 duration초 동안 울리고 서서히 줄어든다.
+ */
 export interface ToneVoice {
   kind: 'tone';
   wave: OscillatorType;
@@ -6,11 +8,15 @@ export interface ToneVoice {
   to: number;
   duration: number;
   volume: number;
-  /** 시작을 이만큼(초) 늦춘다. */
+  /**
+   * 시작을 이만큼(초) 늦춘다.
+   */
   delay?: number;
 }
 
-/** 걸러 낸 잡음 목소리. 필터의 기준 주파수가 from에서 to로 변한다. */
+/**
+ * 걸러 낸 잡음 목소리. 필터의 기준 주파수가 from에서 to로 변한다.
+ */
 export interface NoiseVoice {
   kind: 'noise';
   filter: BiquadFilterType;
@@ -41,9 +47,9 @@ export type SoundName =
   | 'super'
   | 'win';
 
-/** 높이가 변하는 폭: [처음 높이, 끝 높이]. */
+// 높이가 변하는 폭: [처음 높이, 끝 높이].
 type Glide = readonly [from: number, to: number];
-/** 소리의 모양: [길이(초), 크기, 지연(초)]. */
+// 소리의 모양: [길이(초), 크기, 지연(초)].
 type Envelope = readonly [duration: number, volume: number, delay?: number];
 
 const tone = (wave: OscillatorType, [from, to]: Glide, [duration, volume, delay = 0]: Envelope): ToneVoice => ({
@@ -66,13 +72,13 @@ const noise = (filter: BiquadFilterType, [from, to]: Glide, [duration, volume, d
   delay,
 });
 
-/** 세게 맞았을 때 더해지는 묵직한 울림. */
+// 세게 맞았을 때 더해지는 묵직한 울림.
 const heavyBoom = (): Voice[] => [
   tone('sine', [90, 30], [0.35, 0.5, 0.02]),
   noise('lowpass', [1400, 120], [0.25, 0.3, 0.02]),
 ];
 
-/** 타격음은 세기(power)가 클수록 낮고 길고 크다. */
+// 타격음은 세기(power)가 클수록 낮고 길고 크다.
 function hitVoices(power: number): Voice[] {
   const k = Math.min(1, power / 14);
   const base: Voice[] = [

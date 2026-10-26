@@ -21,7 +21,9 @@ const NO_INPUT: Inputs = [{}, {}];
 
 const hasButton = (input: Partial<PadInput>): boolean => !!(input.A || input.B || input.C || input.D);
 
-/** 각 플레이어가 공격 버튼(A~D)을 하나라도 누르고 있는가. */
+/**
+ * 각 플레이어가 공격 버튼(A~D)을 하나라도 누르고 있는가.
+ */
 export const anyButton = (inputs: Inputs): [boolean, boolean] => [hasButton(inputs[0]), hasButton(inputs[1])];
 
 function startRound(world: World): void {
@@ -31,13 +33,17 @@ function startRound(world: World): void {
   emit(world, { type: 'round', round: world.round });
 }
 
-/** 새 판을 시작한다: 승수를 지우고 첫 라운드를 연다. */
+/**
+ * 새 판을 시작한다: 승수를 지우고 첫 라운드를 연다.
+ */
 export function newMatch(world: World, mode: GameMode): void {
   patch(world, { mode, wins: [0, 0], round: 1, matchWinner: null });
   startRound(world);
 }
 
-/** 타이틀 화면으로 돌아가고 두 캐릭터를 처음 모습으로 되돌린다. */
+/**
+ * 타이틀 화면으로 돌아가고 두 캐릭터를 처음 모습으로 되돌린다.
+ */
 export function toTitle(world: World): void {
   patch(world, { phase: 'title', phaseTime: 0 });
   resetFighters(world);
@@ -49,10 +55,10 @@ interface Edges {
   second: boolean;
 }
 
-/** 두 플레이어 중 누구라도 새로 눌렀는가. */
+// 두 플레이어 중 누구라도 새로 눌렀는가.
 const anyPressed = ({ first, second }: Edges): boolean => first || second;
 
-/** 이번 프레임에 새로 눌린 버튼이 있는가: 이전 프레임의 눌림을 기억해 두고 비교한다. */
+// 이번 프레임에 새로 눌린 버튼이 있는가: 이전 프레임의 눌림을 기억해 두고 비교한다.
 function risingEdges(world: World, memory: 'titleButtonsHeld' | 'resultButtonsHeld', inputs: Inputs): Edges {
   const [first, second] = anyButton(inputs);
   const [wasFirst, wasSecond] = world[memory];
@@ -60,7 +66,7 @@ function risingEdges(world: World, memory: 'titleButtonsHeld' | 'resultButtonsHe
   return { first: first && !wasFirst, second: second && !wasSecond };
 }
 
-/** 1P가 눌렀으면 컴퓨터와, 2P만 눌렀으면 둘이서 대전한다. */
+// 1P가 눌렀으면 컴퓨터와, 2P만 눌렀으면 둘이서 대전한다.
 function beginMatch(world: World, edges: Edges): void {
   newMatch(world, edges.second && !edges.first ? '2p' : 'cpu');
   emit(world, { type: 'start' });
@@ -102,13 +108,13 @@ function countDownIntro(world: World): void {
   }
 }
 
-/** 라운드 시작 안내 동안은 입력을 비워서 받는다. */
+// 라운드 시작 안내 동안은 입력을 비워서 받는다.
 function stepIntro(world: World): void {
   readInputs(world, NO_INPUT);
   countDownIntro(world);
 }
 
-/** 시간이 다했다: 체력이 더 많은 쪽이 한 판을 얻는다. */
+// 시간이 다했다: 체력이 더 많은 쪽이 한 판을 얻는다.
 function creditLeader(world: World): void {
   const [a, b] = world.fighters;
   if (a.hp !== b.hp) {
@@ -151,7 +157,7 @@ function nextRound(world: World): void {
   startRound(world);
 }
 
-/** 라운드 끝 안내가 끝나면 다음 라운드로 넘어가거나 판을 끝낸다. */
+// 라운드 끝 안내가 끝나면 다음 라운드로 넘어가거나 판을 끝낸다.
 function finishRound(world: World): void {
   world.phaseTime--;
   if (world.phaseTime > 0) {
@@ -171,7 +177,7 @@ function simulate(world: World): void {
   keepInStage(world);
 }
 
-/** 타격 정지가 풀린 프레임의 전투: 움직이고, 맞히고, 벽 안에 가두고, 끝났으면 다음으로 넘긴다. */
+// 타격 정지가 풀린 프레임의 전투: 움직이고, 맞히고, 벽 안에 가두고, 끝났으면 다음으로 넘긴다.
 function stepBattle(world: World): void {
   if (world.phase === 'fight') {
     tickTimer(world);
@@ -182,7 +188,7 @@ function stepBattle(world: World): void {
   }
 }
 
-/** 입력은 타격 정지 중에도 받는다(버퍼). 정지가 풀리기 전에는 시간이 흐르지 않는다. */
+// 입력은 타격 정지 중에도 받는다(버퍼). 정지가 풀리기 전에는 시간이 흐르지 않는다.
 function stepActive(world: World, inputs: Inputs): void {
   readInputs(world, inputs);
   tickCombos(world);
@@ -202,7 +208,9 @@ const PHASE_STEPS: Record<Phase, (world: World, inputs: Inputs) => void> = {
   time: stepActive,
 };
 
-/** 60분의 1초 한 프레임을 진행한다. 입력은 [1P, 2P]다. */
+/**
+ * 60분의 1초 한 프레임을 진행한다. 입력은 [1P, 2P]다.
+ */
 export function step(world: World, inputs: Inputs): void {
   world.frame++;
   PHASE_STEPS[world.phase](world, inputs);

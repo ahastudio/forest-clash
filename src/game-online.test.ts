@@ -12,7 +12,7 @@ interface World {
   sent: string[];
   texts: () => string[];
   say: (body: unknown) => void;
-  /** 핑을 재는 시계를 이만큼(밀리초) 흘려보낸다. */
+  // 핑을 재는 시계를 이만큼(밀리초) 흘려보낸다.
   tick: (milliseconds: number) => void;
 }
 
@@ -57,14 +57,14 @@ const frames = (game: Game, count: number): void => {
   }
 };
 
-/** 메뉴의 버튼(0 컴퓨터, 1 둘이서, 2 온라인)을 눌러 한 프레임 진행한다. 버튼 밖은 번호 -1이다. */
+// 메뉴의 버튼(0 컴퓨터, 1 둘이서, 2 온라인)을 눌러 한 프레임 진행한다. 버튼 밖은 번호 -1이다.
 const press = (game: Game, index: number): void => {
   const rect = MENU_BUTTONS[index]?.rect;
   game.pointerDown(rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : { x: 0, y: 0 });
   game.update();
 };
 
-/** 서버를 대신해 보낸 입력을 같은 프레임 번호로 상대 입력인 것처럼 돌려준다. */
+// 서버를 대신해 보낸 입력을 같은 프레임 번호로 상대 입력인 것처럼 돌려준다.
 function echoRemote(world: World, from: number): number {
   const inputs = world.sent
     .slice(from)
@@ -76,7 +76,7 @@ function echoRemote(world: World, from: number): number {
   return world.sent.length;
 }
 
-/** 한 프레임씩 진행하며 상대가 같은 프레임에 아무것도 누르지 않은 것처럼 돌려준다. */
+// 한 프레임씩 진행하며 상대가 같은 프레임에 아무것도 누르지 않은 것처럼 돌려준다.
 function advance(world: World, count: number): void {
   let from = world.sent.length;
   for (let i = 0; i < count; i++) {

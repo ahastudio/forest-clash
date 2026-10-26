@@ -3,7 +3,7 @@ import { isExpired } from './token';
 
 const NOW = 1_800_000_000;
 
-/** 구글 ID 토큰의 모양(머리.내용.서명)으로 내용만 채운 토큰. */
+// 구글 ID 토큰의 모양(머리.내용.서명)으로 내용만 채운 토큰.
 const tokenWith = (payload: unknown): string => {
   const bytes = new TextEncoder().encode(JSON.stringify(payload));
   const content = btoa(String.fromCharCode(...bytes))

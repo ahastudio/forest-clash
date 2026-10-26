@@ -15,7 +15,9 @@ const AIR_ATTACKS = [
   ['D', 'jd'],
 ] as const;
 
-/** 공중 공격은 하늘에서 버튼을 누르면 나간다. */
+/**
+ * 공중 공격은 하늘에서 버튼을 누르면 나간다.
+ */
 export function airAttack(world: World, fighter: Fighter): void {
   if (fighter.airAttackUsed) {
     return;
@@ -37,7 +39,7 @@ const collapse = (world: World, fighter: Fighter): void => {
   emit(world, { type: 'land', id: fighter.id, hard: true });
 };
 
-/** 띄워졌다가 땅에 닿았을 때: 체력이 남았으면 쓰러지고, 다했으면 그대로 쓰러져 있다. */
+// 띄워졌다가 땅에 닿았을 때: 체력이 남았으면 쓰러지고, 다했으면 그대로 쓰러져 있다.
 const landFromLaunch = (world: World, fighter: Fighter): void => {
   fighter.launched = false;
   const outcome = fighter.hp <= 0 ? remainKnockedOut : collapse;
@@ -73,7 +75,9 @@ function fall(world: World, fighter: Fighter): void {
   }
 }
 
-/** 중력과 이동, 맞아서 밀려나는 움직임. */
+/**
+ * 중력과 이동, 맞아서 밀려나는 움직임.
+ */
 export function applyMovement(world: World, fighter: Fighter): void {
   if (fighter.altitude > 0 || fighter.velocityY !== 0) {
     fall(world, fighter);

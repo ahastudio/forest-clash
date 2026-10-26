@@ -8,7 +8,9 @@ import { MOVES } from './moves';
 import type { Button, Fighter, World } from './types';
 import { emit } from './world';
 
-/** 행동을 시도한다. 새 행동을 시작했으면 true를 돌려주고, 그러면 더 이상 다른 행동을 고르지 않는다. */
+/**
+ * 행동을 시도한다. 새 행동을 시작했으면 true를 돌려주고, 그러면 더 이상 다른 행동을 고르지 않는다.
+ */
 export type Intent = (world: World, fighter: Fighter) => boolean;
 
 const SPECIAL_BUTTON_AGE = 8;
@@ -22,7 +24,9 @@ const MOVE_START: Partial<Fighter> = {
   cancelable: false,
 };
 
-/** 조건이 맞으면 동작을 하고 true를 돌려주는 행동을 만든다. */
+/**
+ * 조건이 맞으면 동작을 하고 true를 돌려주는 행동을 만든다.
+ */
 export const when =
   (wanted: (world: World, fighter: Fighter) => boolean, act: (world: World, fighter: Fighter) => void): Intent =>
   (world, fighter) => {
@@ -33,18 +37,22 @@ export const when =
     return go;
   };
 
-/** 땅에서 아무 동작도 하지 않아 새 행동을 고를 수 있는 상태인가. */
+/**
+ * 땅에서 아무 동작도 하지 않아 새 행동을 고를 수 있는 상태인가.
+ */
 export const isActionable = (fighter: Fighter): boolean =>
   fighter.altitude === 0 && NEUTRAL_STATES.includes(fighter.state);
 
-/** 기술을 시작할 때 몸에 생기는 변화: 공중 기술은 공중 공격 표시, 땅 기술은 멈춤, 무적과 상승. */
+// 기술을 시작할 때 몸에 생기는 변화: 공중 기술은 공중 공격 표시, 땅 기술은 멈춤, 무적과 상승.
 const startPatch = (move: Move): Partial<Fighter> => ({
   ...(move.air ? { airAttackUsed: true } : { velocityX: 0 }),
   ...(move.invincibleFrames ? { invincibleFrames: move.invincibleFrames } : {}),
   ...(move.rising ? { velocityY: 0 } : {}),
 });
 
-/** 기술을 시작한다: 몸을 기술 시작 상태로 바꾸고, 쌓인 버튼 입력을 비우고, 사건을 알린다. */
+/**
+ * 기술을 시작한다: 몸을 기술 시작 상태로 바꾸고, 쌓인 버튼 입력을 비우고, 사건을 알린다.
+ */
 export function startMove(world: World, fighter: Fighter, id: MoveId): void {
   patch(fighter, { ...MOVE_START, moveId: id, ...startPatch(MOVES[id]) });
   eatBuffer(fighter);
@@ -53,10 +61,10 @@ export function startMove(world: World, fighter: Fighter, id: MoveId): void {
 
 const happened = (age: number): boolean => age >= 0;
 
-/** 나이가 작을수록 최근이다. 상대 모션이 일어나지 않았으면 이쪽이 더 최근이다. */
+// 나이가 작을수록 최근이다. 상대 모션이 일어나지 않았으면 이쪽이 더 최근이다.
 const isMoreRecent = ({ age, than }: { age: number; than: number }): boolean => !happened(than) || age < than;
 
-/** 두 모션이 겹치면 더 최근에 끝난 모션이 이긴다. */
+// 두 모션이 겹치면 더 최근에 끝난 모션이 이긴다.
 function latestMotion(fighter: Fighter): 'dp' | 'qcf' | null {
   const dp = motionAge(fighter, 'dp', BASIC_MOTION);
   const qcf = motionAge(fighter, 'qcf', BASIC_MOTION);
@@ -90,7 +98,9 @@ export function specialInput(fighter: Fighter): MoveId | null {
   return rule ? rule.move : null;
 }
 
-/** 특수기를 시작한다. 분노 필살기는 게이지를 모두 쓴다. */
+/**
+ * 특수기를 시작한다. 분노 필살기는 게이지를 모두 쓴다.
+ */
 export function startSpecial(world: World, fighter: Fighter, id: MoveId): void {
   if (id === 'super') {
     fighter.rage = 0;
@@ -113,7 +123,7 @@ const STAND_NORMALS: Record<Button, MoveId> = { A: 'a5', B: 'b5', C: 'c5', D: 'd
 const CROUCH_NORMALS: Record<Button, MoveId> = { A: 'a2', B: 'b2', C: 'c2', D: 'd2' };
 const FORWARD_NORMALS: Partial<Record<Button, MoveId>> = { C: 'c6', D: 'd6' };
 
-/** 가장 먼저 누른(나이가 가장 큰) 버튼. 눌린 버튼이 없으면 null. */
+// 가장 먼저 누른(나이가 가장 큰) 버튼. 눌린 버튼이 없으면 null.
 function oldestPressedButton(fighter: Fighter): Button | null {
   const candidates = BUTTONS.filter(b => pressed(fighter, b));
   return candidates.reduce<Button | null>(
@@ -157,5 +167,7 @@ const tryNormal: Intent = (world, fighter) => {
 
 const ATTACK_INTENTS: readonly Intent[] = [trySpecial, tryRoll, tryBlow, tryThrow, tryNormal];
 
-/** 입력으로 새 기술을 시작했으면 true. */
+/**
+ * 입력으로 새 기술을 시작했으면 true.
+ */
 export const chooseAction: Intent = (world, fighter) => ATTACK_INTENTS.some(intent => intent(world, fighter));

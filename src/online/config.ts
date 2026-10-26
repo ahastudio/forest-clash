@@ -1,17 +1,21 @@
-/** 온라인 대전에 필요한 설정. clientId가 null이면 구글 대신 stub 로그인을 쓴다. */
+/**
+ * 온라인 대전에 필요한 설정. clientId가 null이면 구글 대신 stub 로그인을 쓴다.
+ */
 export interface OnlineConfig {
   serverUrl: string;
   clientId: string | null;
 }
 
-/** 빌드 환경 값 중 온라인 설정에 쓰는 것. DEV는 Vite 개발 서버에서만 true다. */
+/**
+ * 빌드 환경 값 중 온라인 설정에 쓰는 것. DEV는 Vite 개발 서버에서만 true다.
+ */
 export interface OnlineEnvironment {
   VITE_SERVER_URL?: string;
   VITE_GOOGLE_CLIENT_ID?: string;
   DEV: boolean;
 }
 
-/** 개발 서버에서 서버 주소를 주지 않았을 때 쓰는 로컬 서버 주소(게임 개발 서버 포트에 1을 더한 포트). */
+// 개발 서버에서 서버 주소를 주지 않았을 때 쓰는 로컬 서버 주소(게임 개발 서버 포트에 1을 더한 포트).
 const DEV_SERVER_URL = 'ws://localhost:58970/ws';
 
 /**

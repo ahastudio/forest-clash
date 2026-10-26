@@ -10,14 +10,14 @@ import { drawIntro, drawNotice, drawPing, drawResult, drawRoundEnd, drawTitle } 
 import type { View } from './view';
 
 interface SceneFlags {
-  /** 캐릭터를 그릴 엔진. 타이틀에서는 배경에서 싸우는 연습용 엔진이고, 그 밖에는 실제 엔진이다. */
+  // 캐릭터를 그릴 엔진. 타이틀에서는 배경에서 싸우는 연습용 엔진이고, 그 밖에는 실제 엔진이다.
   world: Engine;
   paused: boolean;
   showBoxes: boolean;
   version: string;
 }
 
-/** 땅의 윗선(그림의 63퍼센트 높이)을 화면 390에 맞춘 고정 배경. */
+// 땅의 윗선(그림의 63퍼센트 높이)을 화면 390에 맞춘 고정 배경.
 const BACKGROUND_SCALE = 1.15;
 const BACKGROUND_GROUND_LINE = 0.63;
 const BACKGROUND_GROUND_Y = 390;
@@ -34,7 +34,7 @@ function drawBackdropImage(g: Ctx, image: HTMLImageElement): void {
   g.drawImage(image, (SCREEN_WIDTH - width) / 2, BACKGROUND_GROUND_Y - BACKGROUND_GROUND_LINE * height, width, height);
 }
 
-/** 배경 그림을 아직 못 불렀으면 초록색 땅으로 대신한다. */
+// 배경 그림을 아직 못 불렀으면 초록색 땅으로 대신한다.
 function drawBackground({ g, sprites }: View): void {
   const image = sprites.background();
   if (image) {
@@ -45,7 +45,7 @@ function drawBackground({ g, sprites }: View): void {
   }
 }
 
-/** 가장자리를 어둡게 하는 원형 그라데이션. */
+// 가장자리를 어둡게 하는 원형 그라데이션.
 function vignetteGradient(g: Ctx): CanvasGradient {
   const gradient = g.createRadialGradient(
     CENTER_X,
@@ -64,7 +64,7 @@ function drawVignette(g: Ctx): void {
   fillScreen(g, vignetteGradient(g));
 }
 
-/** 고정 카메라: 화면 가운데에서 확대해 바라본다. */
+// 고정 카메라: 화면 가운데에서 확대해 바라본다.
 function applyCamera(g: Ctx): void {
   g.translate(CENTER_X, CENTER_Y);
   g.scale(CAMERA_ZOOM, CAMERA_ZOOM);
@@ -80,7 +80,7 @@ function drawActors(view: View, { showBoxes }: Pick<SceneFlags, 'showBoxes'>): v
   }
 }
 
-/** 단계마다 위에 덮는 화면. 대전 중에는 체력 막대가 있고, 단계에 따라 안내가 더해진다. */
+// 단계마다 위에 덮는 화면. 대전 중에는 체력 막대가 있고, 단계에 따라 안내가 더해진다.
 const OVERLAYS: Record<Phase, (scene: Scene, view: View) => void> = {
   title: (_scene, view) => drawTitle(view),
   intro: (scene, view) => {
@@ -103,7 +103,9 @@ const OVERLAYS: Record<Phase, (scene: Scene, view: View) => void> = {
   },
 };
 
-/** 화면 전체를 그린다. 그림은 전부 이 클래스가 만들고, 규칙은 엔진이 정한 상태를 보여 주기만 한다. */
+/**
+ * 화면 전체를 그린다. 그림은 전부 이 클래스가 만들고, 규칙은 엔진이 정한 상태를 보여 주기만 한다.
+ */
 export class Scene {
   readonly effects = new Effects();
   readonly hud = new Hud();
@@ -117,14 +119,14 @@ export class Scene {
     }
   }
 
-  /** 단계에 맞는 덮는 화면과 온라인 상황 한 줄, 핑. */
+  // 단계에 맞는 덮는 화면과 온라인 상황 한 줄, 핑.
   private drawOverlays(view: View): void {
     OVERLAYS[view.engine.phase](this, view);
     drawNotice(view);
     drawPing(view);
   }
 
-  /** 하늘, 배경, 그리고 카메라로 바라본 세계(캐릭터, 판정 상자, 효과). */
+  // 하늘, 배경, 그리고 카메라로 바라본 세계(캐릭터, 판정 상자, 효과).
   private drawScene(view: View, flags: SceneFlags): void {
     drawSky(view.g);
     drawBackground(view);

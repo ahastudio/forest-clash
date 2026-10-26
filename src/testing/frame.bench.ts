@@ -3,10 +3,10 @@ import { create } from '../ai';
 import type { PadInput } from '../engine';
 import { createEngine } from '../engine';
 
-/** 한 번의 측정에서 두는 프레임 수: 60프레임이 1초이므로 10초 분량이다. */
+// 한 번의 측정에서 두는 프레임 수: 60프레임이 1초이므로 10초 분량이다.
 const FRAMES_PER_RUN = 600;
 
-/** 가장 센 컴퓨터 둘이 10초 동안 싸운다. 판이 끝나면 새 판을 시작해 프레임 수를 채운다. */
+// 가장 센 컴퓨터 둘이 10초 동안 싸운다. 판이 끝나면 새 판을 시작해 프레임 수를 채운다.
 function playFrames(): void {
   const idle: Partial<PadInput> = {};
   const engine = createEngine();

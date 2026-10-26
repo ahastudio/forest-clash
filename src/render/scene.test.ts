@@ -5,7 +5,7 @@ import { makeView } from '../testing/canvas';
 import { Scene } from './scene';
 import type { View } from './view';
 
-/** 그릴 장면의 깃발: 캐릭터는 그 View의 엔진으로 그린다. */
+// 그릴 장면의 깃발: 캐릭터는 그 View의 엔진으로 그린다.
 const flagsOf = (view: View, changes: Partial<{ paused: boolean; showBoxes: boolean }> = {}) => ({
   world: view.engine,
   paused: false,

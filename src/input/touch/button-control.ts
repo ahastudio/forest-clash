@@ -10,7 +10,9 @@ interface ButtonParts {
   element: HTMLElement;
 }
 
-/** 공격 버튼 하나. 누르는 동안만 눌린 것으로 본다. */
+/**
+ * 공격 버튼 하나. 누르는 동안만 눌린 것으로 본다.
+ */
 export class ButtonControl {
   constructor(
     private readonly game: Game,

@@ -1,7 +1,9 @@
 import type { PlayerId } from '../engine';
 import type { FrameInput } from './lockstep';
 
-/** 서버가 알려 주는 선수 정보: 이름과 승패. */
+/**
+ * 서버가 알려 주는 선수 정보: 이름과 승패.
+ */
 export interface Profile {
   name: string;
   wins: number;
@@ -59,7 +61,7 @@ function parseError({ reason }: Body): ServerMessage | null {
   return isText(reason) ? { type: 'error', reason } : null;
 }
 
-/** 메시지 종류마다 내용을 검사해 만드는 방법. */
+// 메시지 종류마다 내용을 검사해 만드는 방법.
 const PARSERS: Record<string, (body: Body) => ServerMessage | null> = {
   ready: parseReady,
   waiting: () => ({ type: 'waiting' }),
@@ -79,7 +81,9 @@ function parseJson(text: string): unknown {
   }
 }
 
-/** 서버가 보낸 글자를 메시지로 바꾼다. 형식이 맞지 않으면 null이다. */
+/**
+ * 서버가 보낸 글자를 메시지로 바꾼다. 형식이 맞지 않으면 null이다.
+ */
 export function parseServerMessage(text: string): ServerMessage | null {
   const body = parseJson(text);
   if (!isRecord(body) || !isText(body.type) || !Object.hasOwn(PARSERS, body.type)) {
@@ -88,7 +92,9 @@ export function parseServerMessage(text: string): ServerMessage | null {
   return PARSERS[body.type]?.(body) ?? null;
 }
 
-/** 클라이언트가 서버로 보내는 메시지의 글자. */
+/**
+ * 클라이언트가 서버로 보내는 메시지의 글자.
+ */
 export const clientMessage = {
   hello: (token: string): string => JSON.stringify({ type: 'hello', token }),
   queue: (): string => JSON.stringify({ type: 'queue' }),

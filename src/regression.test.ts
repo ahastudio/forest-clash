@@ -5,7 +5,7 @@ import { createEngine } from './engine';
 
 afterEach(() => vi.restoreAllMocks());
 
-/** 테스트마다 같은 값이 나오도록 하는 난수 생성기. */
+// 테스트마다 같은 값이 나오도록 하는 난수 생성기.
 function mulberry(seed: number): () => number {
   let state = seed | 0;
   return () => {
@@ -16,7 +16,7 @@ function mulberry(seed: number): () => number {
   };
 }
 
-/** 문자열을 32비트 숫자로 섞어 이어 붙인다. */
+// 문자열을 32비트 숫자로 섞어 이어 붙인다.
 function mix(hash: number, text: string): number {
   let next = hash;
   for (let i = 0; i < text.length; i++) {
@@ -25,7 +25,7 @@ function mix(hash: number, text: string): number {
   return next;
 }
 
-/** 눈에 보이는 결과만 요약한다(위치, 높이, 체력, 분노, 상태, 방향). 내부 기록의 모양이 바뀌어도 값이 변하지 않는다. */
+// 눈에 보이는 결과만 요약한다(위치, 높이, 체력, 분노, 상태, 방향). 내부 기록의 모양이 바뀌어도 값이 변하지 않는다.
 const fighterSummary = (fighter: Fighter) => [
   fighter.x,
   fighter.altitude,
@@ -53,7 +53,7 @@ interface Outcome {
   digest: string;
 }
 
-/** 컴퓨터끼리 한 판을 끝까지 두고, 모든 프레임의 상태를 하나의 값으로 요약한다. */
+// 컴퓨터끼리 한 판을 끝까지 두고, 모든 프레임의 상태를 하나의 값으로 요약한다.
 function playMatch(seed: number, levels: [number, number]): Outcome {
   vi.spyOn(Math, 'random').mockImplementation(mulberry(seed));
   const engine = createEngine();

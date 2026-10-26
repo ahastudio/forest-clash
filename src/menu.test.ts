@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { choiceAt, MENU_BUTTONS, TitleMenu } from './menu';
 
-/** 버튼 번호의 가운데 점. */
+// 버튼 번호의 가운데 점.
 const centerOf = (index: number) => {
   const { x, y, width, height } = MENU_BUTTONS[index]?.rect ?? { x: 0, y: 0, width: 0, height: 0 };
   return { x: x + width / 2, y: y + height / 2 };
