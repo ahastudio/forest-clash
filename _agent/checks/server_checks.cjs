@@ -12,14 +12,14 @@ const os = require('os');
 const path = require('path');
 
 const SERVER_DIRECTORY = path.join(__dirname, '..', '..', 'server');
-/** 도구는 설치하지 않고 버전을 고정해 go run으로 실행한다. */
+// 도구는 설치하지 않고 버전을 고정해 go run으로 실행한다.
 const STATICCHECK = 'honnef.co/go/tools/cmd/staticcheck@v0.8.2';
 const GOBCO = 'github.com/rillig/gobco@v1.3.4';
 
 const goVersion = fs.readFileSync(path.join(SERVER_DIRECTORY, 'go.mod'), 'utf8').match(/^go (\S+)/m)[1];
 const hasMise = spawnSync('mise', ['--version'], { encoding: 'utf8' }).status === 0;
 
-/** server 폴더에서 Go 도구(go, gofmt)를 실행하고 종료 코드와 출력을 돌려준다. */
+// server 폴더에서 Go 도구(go, gofmt)를 실행하고 종료 코드와 출력을 돌려준다.
 const run = (program, args) => {
   const [command, commandArguments] = hasMise ? ['mise', ['exec', `go@${goVersion}`, '--', program, ...args]] : [program, args];
   const result = spawnSync(command, commandArguments, { cwd: SERVER_DIRECTORY, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -28,7 +28,7 @@ const run = (program, args) => {
 
 const go = args => run('go', args);
 
-/** 실행한 명령의 출력에서 끝의 문제 줄을 보인다. */
+// 실행한 명령의 출력에서 끝의 문제 줄을 보인다.
 const tail = output => output.split('\n').slice(-15).join('\n');
 
 const formatting = () => {

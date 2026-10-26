@@ -13,13 +13,13 @@ const ALLOWED_EXCLUDES = ['src/**/*.test.ts', 'src/testing/**'];
 
 const config = fs.readFileSync(path.join(process.cwd(), 'vite.config.ts'), 'utf8');
 
-/** 임계값 객체에서 지표 하나의 값을 읽는다. 없으면 null. */
+// 임계값 객체에서 지표 하나의 값을 읽는다. 없으면 null.
 const thresholdOf = metric => {
   const match = config.match(new RegExp(`thresholds:\\s*{[^}]*\\b${metric}:\\s*(\\d+)`));
   return match ? Number(match[1]) : null;
 };
 
-/** 측정에서 뺀 경로 목록을 읽는다. */
+// 측정에서 뺀 경로 목록을 읽는다.
 const excludes = () => [...((config.match(/exclude:\s*\[([^\]]*)\]/) ?? [])[1] ?? '').matchAll(/'([^']+)'/g)].map(match => match[1]);
 
 const problems = [

@@ -55,7 +55,7 @@ const BLOCKQUOTES = {
 const problems = [];
 const report = (feature, file, message) => problems.push(`${feature}/${file}.md: ${message}`);
 
-/** `## ` 제목 목록. 코드 블록 안은 제외한다. */
+// `## ` 제목 목록. 코드 블록 안은 제외한다.
 const headings = (text, level) => {
   let inFence = false;
   return text.split('\n').flatMap(line => {
@@ -66,7 +66,7 @@ const headings = (text, level) => {
   });
 };
 
-/** `## section` 아래의 `### ` 제목 목록. */
+// `## section` 아래의 `### ` 제목 목록.
 const subheadings = (text, section) => {
   const lines = text.split('\n');
   const start = lines.findIndex(line => line === `## ${section}`);
@@ -80,7 +80,7 @@ const subheadings = (text, section) => {
 
 const count = (text, pattern) => (text.match(pattern) || []).length;
 
-/** 번호가 1부터 빠짐없이 이어지는가. */
+// 번호가 1부터 빠짐없이 이어지는가.
 const contiguous = numbers => numbers.every((number, index) => number === index + 1);
 const numbersOf = (text, pattern) => [...text.matchAll(pattern)].map(match => Number(match[1]));
 const checkNumbering = (feature, file, text, labels) => {
@@ -91,7 +91,7 @@ const checkNumbering = (feature, file, text, labels) => {
   }
 };
 
-/** progress.md의 Session 제목은 여러 개일 수 있으므로 Session으로 묶어 비교한다. */
+// progress.md의 Session 제목은 여러 개일 수 있으므로 Session으로 묶어 비교한다.
 const progressSections = text => headings(text, 2).map(title => (/^Session \d{4}-\d{2}-\d{2}$/.test(title) ? 'Session' : title));
 const collapse = titles => titles.filter((title, index) => index === 0 || title !== titles[index - 1]);
 

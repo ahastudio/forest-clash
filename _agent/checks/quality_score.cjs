@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-/** 프로젝트에 설치된 TypeScript를 불러온다. 이 도구는 TypeScript 5.x의 구문 트리 API를 쓴다(7은 쓰지 않는다). */
+// 프로젝트에 설치된 TypeScript를 불러온다. 이 도구는 TypeScript 5.x의 구문 트리 API를 쓴다(7은 쓰지 않는다).
 function loadTypeScript() {
   const candidate = require(require.resolve('typescript', { paths: [process.cwd()] }));
   if (!candidate.ScriptTarget) {
@@ -27,7 +27,7 @@ const PRIMITIVES = new Set(['number', 'string', 'boolean']);
 const COORDINATE_NAMES = new Set(['x', 'y', 'z', 'w', 'r', 'g', 'b', 'a', 'from', 'to', 'min', 'max', 't', 'u', 'angle', 'distance', 'width', 'height']);
 const LOOPS = [ts.isForStatement, ts.isForOfStatement, ts.isForInStatement, ts.isWhileStatement, ts.isDoStatement];
 
-/** 명령줄 인자를 읽는다. */
+// 명령줄 인자를 읽는다.
 function parseArgs(argv) {
   const min = argv.indexOf('--min');
   return {
@@ -38,7 +38,7 @@ function parseArgs(argv) {
   };
 }
 
-/** 폴더 아래의 .ts 파일을 모두 모은다. */
+// 폴더 아래의 .ts 파일을 모두 모은다.
 function listFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
     const full = path.join(dir, entry.name);
@@ -51,14 +51,14 @@ function listFiles(dir) {
 
 const isTestPath = file => file.endsWith('.test.ts') || file.includes(`${path.sep}testing${path.sep}`);
 
-/** 파일을 읽어 구문 트리와 줄 수를 갖춘 기록으로 만든다. */
+// 파일을 읽어 구문 트리와 줄 수를 갖춘 기록으로 만든다.
 function loadFile(file) {
   const text = fs.readFileSync(file, 'utf8');
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.ESNext, true);
   return { file, text, source, lines: text.split('\n').length - 1, isTest: isTestPath(file) };
 }
 
-/** 구문 트리를 깊이 우선으로 돌며 방문 함수를 부른다. */
+// 구문 트리를 깊이 우선으로 돌며 방문 함수를 부른다.
 function visitAll(node, visit) {
   visit(node);
   ts.forEachChild(node, child => visitAll(child, visit));
@@ -76,7 +76,7 @@ const locationOf = (record, node) => {
   return `${record.file}:${line}`;
 };
 
-/** 본문이 있는 함수와 그 위치를 모은다. */
+// 본문이 있는 함수와 그 위치를 모은다.
 function functionsOf(records) {
   const found = [];
   for (const record of records) {
@@ -89,7 +89,7 @@ function functionsOf(records) {
   return found;
 }
 
-/** 블록 안의 문장 수. 제어문의 머리는 1개로 세고 안쪽 문장은 따로 센다. */
+// 블록 안의 문장 수. 제어문의 머리는 1개로 세고 안쪽 문장은 따로 센다.
 function countStatements(block) {
   let count = 0;
   const visit = statement => {
@@ -104,7 +104,7 @@ function countStatements(block) {
   return count;
 }
 
-/** 문장 안쪽의 문장들을 방문한다. */
+// 문장 안쪽의 문장들을 방문한다.
 function descend(statement, visit, countClause) {
   if (ts.isIfStatement(statement)) {
     visit(statement.thenStatement);
@@ -133,7 +133,7 @@ function descend(statement, visit, countClause) {
 const primitiveOf = param => (param.type && PRIMITIVES.has(param.type.getText()) ? param.type.getText() : null);
 const isCoordinatePair = (a, b) => COORDINATE_NAMES.has(a.name.getText()) && COORDINATE_NAMES.has(b.name.getText());
 
-/** 호출하는 자리에서 뜻이 드러나지 않는 매개변수 목록인가: 불리언 플래그, 같은 타입의 이웃한 숫자·문자열. */
+// 호출하는 자리에서 뜻이 드러나지 않는 매개변수 목록인가: 불리언 플래그, 같은 타입의 이웃한 숫자·문자열.
 function hasAmbiguousParams(fn) {
   const params = fn.parameters;
   if (params.some(param => primitiveOf(param) === 'boolean')) {
@@ -145,7 +145,7 @@ function hasAmbiguousParams(fn) {
   });
 }
 
-/** 조건식이 한 줄에 들어가는 짧은 식인가. */
+// 조건식이 한 줄에 들어가는 짧은 식인가.
 function conditionProblem(record, condition) {
   const { source } = record;
   const start = source.getLineAndCharacterOfPosition(condition.getStart()).line;
@@ -194,7 +194,7 @@ function measureReadableParams(records) {
   return ratioResult(targets.length, violations);
 }
 
-/** 조건문이나 반복문의 위치와 종류를 모은다. */
+// 조건문이나 반복문의 위치와 종류를 모은다.
 function collect(records, pick) {
   const found = [];
   for (const record of records) {
@@ -242,7 +242,7 @@ function measureFileSize(records) {
   return ratioResult(records.length, violations);
 }
 
-/** 값으로 가져오는 상대 경로 import의 대상 파일을 찾는다(타입만 가져오는 import는 제외한다). */
+// 값으로 가져오는 상대 경로 import의 대상 파일을 찾는다(타입만 가져오는 import는 제외한다).
 function importTargets(record, byPath) {
   const targets = [];
   for (const statement of record.source.statements) {
@@ -257,7 +257,7 @@ function importTargets(record, byPath) {
   return targets;
 }
 
-/** 서로를 부르는 파일 묶음(강연결 요소)을 찾는다. */
+// 서로를 부르는 파일 묶음(강연결 요소)을 찾는다.
 function findCycles(graph) {
   const index = new Map();
   const low = new Map();
@@ -298,7 +298,7 @@ function measureCycles(records) {
 
 const isExported = node => (ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Export) !== 0;
 
-/** 파일이 밖으로 내보내는 이름들과 그 선언. */
+// 파일이 밖으로 내보내는 이름들과 그 선언.
 function exportsOf(record) {
   return record.source.statements.filter(isExported).flatMap(statement => {
     if (ts.isVariableStatement(statement)) {
@@ -346,7 +346,7 @@ const ITEMS = [
   ['중복 함수 본문 없음', 10, measureDuplicates],
 ];
 
-/** 항목마다 점수를 계산하고 가중 합을 낸다. */
+// 항목마다 점수를 계산하고 가중 합을 낸다.
 function scoreAll(records, everyRecord) {
   const items = ITEMS.map(([label, weight, measure]) => ({ label, weight, ...measure(records, everyRecord) }));
   const total = items.reduce((sum, item) => sum + (item.weight * item.score) / 100, 0);

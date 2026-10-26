@@ -15,16 +15,16 @@ const ROOT = path.join(__dirname, '..', '..');
 const HADOLINT = 'hadolint/hadolint@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d';
 const ANSIBLE_LINT = 'pipelinecomponents/ansible-lint@sha256:2858d48ce728090626424161dfc96caae15053da7fd2b8541ca105e0e36f5b14';
 const NGINX = 'nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10';
-/** README의 nginx 설정은 컨테이너 이름으로 업스트림을 적으므로, 검사할 때만 풀 수 있는 주소로 바꾼다. */
+// README의 nginx 설정은 컨테이너 이름으로 업스트림을 적으므로, 검사할 때만 풀 수 있는 주소로 바꾼다.
 const UPSTREAM = 'forest-clash-server:58970';
 
-/** Docker 명령을 실행하고 종료 코드와 출력을 돌려준다. */
+// Docker 명령을 실행하고 종료 코드와 출력을 돌려준다.
 const docker = (args, input) => {
   const result = spawnSync('docker', args, { cwd: ROOT, encoding: 'utf8', input });
   return { status: result.status, output: `${result.stdout}${result.stderr}`.trim() };
 };
 
-/** 실행한 명령의 출력에서 끝의 문제 줄을 보인다. */
+// 실행한 명령의 출력에서 끝의 문제 줄을 보인다.
 const tail = output => output.split('\n').slice(-20).join('\n');
 
 const dockerfile = () => {

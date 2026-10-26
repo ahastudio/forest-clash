@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
-/** [양식 파일, 원본]. 경로는 저장소 루트 기준이다. */
+// [양식 파일, 원본]. 경로는 저장소 루트 기준이다.
 const PAIRS = [
   ['.env.example', '.env.local'],
   ['infra/vars.yml.example', 'infra/vars.yml'],
@@ -18,14 +18,14 @@ const PAIRS = [
 ];
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'coverage', '.vite']);
 
-/** 줄에서 값을 지워 이름만 남기는 방법. 주석과 빈 줄은 그대로 둔다. */
+// 줄에서 값을 지워 이름만 남기는 방법. 주석과 빈 줄은 그대로 둔다.
 const MASKS = {
   '.env': line => line.replace(/^([A-Za-z_][A-Za-z0-9_]*)=.*$/, '$1='),
   '.yml': line => line.replace(/^(\s*[A-Za-z_][\w-]*:)\s+\S.*$/, '$1'),
   '.ini': line => line.replace(/([A-Za-z_][\w-]*)=('[^']*'|"[^"]*"|\S*)/g, '$1='),
 };
 
-/** 양식 파일은 원본 이름 끝에 .example이 붙은 것이므로, 그것을 떼고 형식을 가른다. */
+// 양식 파일은 원본 이름 끝에 .example이 붙은 것이므로, 그것을 떼고 형식을 가른다.
 const kindOf = file => {
   const name = file.replace(/\.example$/, '');
   return name.endsWith('.yml') ? '.yml' : name.endsWith('.ini') ? '.ini' : '.env';
@@ -36,7 +36,7 @@ const maskFor = file => {
   return line => (line.trimStart().startsWith('#') || line.trim() === '' ? line : mask(line));
 };
 
-/** 저장소 안의 양식 파일을 모두 찾는다. */
+// 저장소 안의 양식 파일을 모두 찾는다.
 const findExamples = directory =>
   fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const full = path.join(directory, entry.name);
@@ -46,10 +46,10 @@ const findExamples = directory =>
     return entry.name.endsWith('.example') ? [path.relative(ROOT, full)] : [];
   });
 
-/** 파일을 줄로 읽어 값을 지운다. 끝의 빈 줄은 무시한다. */
+// 파일을 줄로 읽어 값을 지운다. 끝의 빈 줄은 무시한다.
 const maskedLines = file => fs.readFileSync(path.join(ROOT, file), 'utf8').replace(/\n+$/, '').split('\n').map(maskFor(file));
 
-/** 양식의 주석은 원본에도 그대로 들어가므로, 양식 파일이라는 사실이나 복사를 말하면 원본에서 말이 안 된다. */
+// 양식의 주석은 원본에도 그대로 들어가므로, 양식 파일이라는 사실이나 복사를 말하면 원본에서 말이 안 된다.
 const SELF_REFERENCE = /복사|양식|이 파일|(yml|ini|env)\.example/;
 
 const problems = [];

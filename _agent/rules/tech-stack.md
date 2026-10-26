@@ -46,7 +46,7 @@
 | `pnpm run lint` | 린트와 서식 검사(Biome). 세미콜론은 반드시 쓴다 |
 | `pnpm test` | 테스트 실행(Vitest) |
 | `pnpm run coverage` | 테스트와 커버리지. 문장·분기·함수·줄 모두 100퍼센트여야 통과한다 |
-| `pnpm run guard` | TypeScript 7 금지, 커버리지 임계값(네 항목 모두 100), 양식 파일(`*.example`)이 원본과 값만 다른지, 마크다운 표기(굵은 글씨 소제목(FBPW 라벨 제외), 맨 주소, 제목 앞 빈 줄), 스펙 문서가 FBPW 템플릿과 같은 틀인지 검사 |
+| `pnpm run guard` | TypeScript 7 금지, 커버리지 임계값(네 항목 모두 100), 양식 파일(`*.example`)이 원본과 값만 다른지, 마크다운 표기(굵은 글씨 소제목(FBPW 라벨 제외), 맨 주소, 제목 앞 빈 줄), 스펙 문서가 FBPW 템플릿과 같은 틀인지, JSDoc 표기(문서화 대상에만 쓰고 한 줄로 쓰지 않는지, `_agent/checks/check_jsdoc.cjs`) 검사 |
 | `pnpm run check` | 가드, 타입 검사, 린트, 커버리지, 품질 점수, 서버 점검을 모두 실행한다 |
 | `pnpm run build` | 타입 검사와 프로덕션 빌드(`dist/`) |
 | `pnpm run bench` | 엔진과 컴퓨터 상대의 600프레임 계산 시간을 잰다(`src/testing/frame.bench.ts`, 결과는 `coverage/bench.json`) |

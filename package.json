@@ -19,7 +19,7 @@
     "check": "pnpm run guard && pnpm run typecheck && pnpm run lint && pnpm run coverage && pnpm run score && pnpm run check:server",
     "check:server": "node _agent/checks/server_checks.cjs",
     "check:infra": "node _agent/checks/infra_checks.cjs",
-    "guard": "node _agent/checks/check_typescript_version.cjs && node _agent/checks/check_coverage_thresholds.cjs && node _agent/checks/check_examples.cjs && node _agent/checks/check_markdown.cjs && node _agent/checks/check_fbpw.cjs",
+    "guard": "node _agent/checks/check_typescript_version.cjs && node _agent/checks/check_coverage_thresholds.cjs && node _agent/checks/check_examples.cjs && node _agent/checks/check_markdown.cjs && node _agent/checks/check_fbpw.cjs && node _agent/checks/check_jsdoc.cjs",
     "score": "node _agent/checks/quality_score.cjs src --min 95",
     "bench": "vitest bench --run --outputJson=coverage/bench.json",
     "budget": "node _agent/checks/performance_budget.cjs",

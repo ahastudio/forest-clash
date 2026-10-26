@@ -13,13 +13,13 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'coverage', '.vite', '.vercel']);
-/** 굵은 글씨만 있는 한 줄. 문장(마침표, 물음표, 따옴표로 끝남)이면 강조이므로 소제목이 아니다. */
+// 굵은 글씨만 있는 한 줄. 문장(마침표, 물음표, 따옴표로 끝남)이면 강조이므로 소제목이 아니다.
 const BOLD_ONLY_LINE = /^\*\*([^*]+)\*\*:?\s*$/;
 const SENTENCE_END = /[.?!"'”」)]$/;
-/** FBPW 템플릿(progress.md, findings.md)이 굵은 글씨 라벨로 정한 이름. 템플릿 그대로 쓴다. */
+// FBPW 템플릿(progress.md, findings.md)이 굵은 글씨 라벨로 정한 이름. 템플릿 그대로 쓴다.
 const FBPW_LABELS = new Set(['작업 내역', '생성/수정 파일', '문제', '원인', '해결', '결과']);
 
-/** 저장소의 마크다운 파일을 모두 찾는다. */
+// 저장소의 마크다운 파일을 모두 찾는다.
 const findMarkdown = directory =>
   fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const full = path.join(directory, entry.name);
@@ -29,7 +29,7 @@ const findMarkdown = directory =>
     return entry.name.endsWith('.md') ? [full] : [];
   });
 
-/** 코드 블록 밖의 줄만 [번호, 줄]로 돌려준다. */
+// 코드 블록 밖의 줄만 [번호, 줄]로 돌려준다.
 const proseLines = text => {
   let inFence = false;
   return text.split('\n').flatMap((line, index) => {
@@ -41,7 +41,7 @@ const proseLines = text => {
   });
 };
 
-/** 인라인 코드, 링크의 대상, <...>로 감싼 주소를 지운 줄. 남은 주소가 맨 주소다. */
+// 인라인 코드, 링크의 대상, <...>로 감싼 주소를 지운 줄. 남은 주소가 맨 주소다.
 const withoutAllowedUrls = line => line.replace(/`[^`]*`/g, '').replace(/\]\([^)]*\)/g, ']').replace(/<[^>]*>/g, '');
 
 const problems = [];

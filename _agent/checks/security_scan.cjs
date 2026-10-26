@@ -13,9 +13,9 @@ const DANGEROUS_API = /\b(eval|Function)\s*\(|\.(innerHTML|outerHTML)\b|insertAd
 const NETWORK_API = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\b|navigator\.sendBeacon|postMessage/;
 const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com', 'accounts.google.com'];
 const EXTERNAL_URL = new RegExp(`https?://(?!(?:${ALLOWED_HOSTS.map(host => host.replace(/\./g, '\\.')).join('|')})(?:[/;" ]|$))`);
-/** 서버와 통신하는 코드는 이 파일 한 곳에만 둔다. */
+// 서버와 통신하는 코드는 이 파일 한 곳에만 둔다.
 const NETWORK_FILE = path.join('src', 'online', 'web-socket.ts');
-/** 스크립트를 받아 올 수 있는 곳: 같은 출처, 방문 분석 도구(Clicky), 구글 로그인뿐이다. */
+// 스크립트를 받아 올 수 있는 곳: 같은 출처, 방문 분석 도구(Clicky), 구글 로그인뿐이다.
 const ALLOWED_SCRIPT_SOURCES = ["'self'", 'https://static.getclicky.com', 'https://accounts.google.com/gsi/client'];
 const SECRET = /AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(api|secret|access)[_-]?(key|token)\s*[:=]\s*['"][^'"]{8,}/i;
 const REQUIRED_HEADERS = ['content-security-policy', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'strict-transport-security'];
@@ -23,7 +23,7 @@ const REQUIRED_HEADERS = ['content-security-policy', 'x-content-type-options', '
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = file => fs.existsSync(path.join(root, file));
 
-/** 폴더 아래의 파일을 모두 모은다. */
+// 폴더 아래의 파일을 모두 모은다.
 function filesUnder(directory) {
   if (!exists(directory)) {
     return [];
@@ -36,14 +36,14 @@ function filesUnder(directory) {
 
 const isGameSource = file => file.endsWith('.ts') && !file.endsWith('.test.ts') && !file.includes(`${path.sep}testing${path.sep}`);
 
-/** 파일의 줄마다 패턴을 찾아 「경로:줄 설명」 목록으로 돌려준다. */
+// 파일의 줄마다 패턴을 찾아 「경로:줄 설명」 목록으로 돌려준다.
 function findLines(file, pattern, label) {
   return read(file)
     .split('\n')
     .flatMap((line, index) => (pattern.test(line) ? [`${file}:${index + 1} ${label}`] : []));
 }
 
-/** 게임 코드에 위험한 API, 네트워크 API가 없는지 본다. */
+// 게임 코드에 위험한 API, 네트워크 API가 없는지 본다.
 function sourceViolations() {
   const files = SOURCE_DIRECTORIES.flatMap(filesUnder).filter(isGameSource);
   return files.flatMap(file => [
@@ -52,13 +52,13 @@ function sourceViolations() {
   ]);
 }
 
-/** 코드, 페이지, 그림에 외부 주소와 비밀값이 없는지 본다. */
+// 코드, 페이지, 그림에 외부 주소와 비밀값이 없는지 본다.
 function contentViolations() {
   const files = [...SOURCE_DIRECTORIES.flatMap(filesUnder), 'index.html', 'vercel.json', ...filesUnder('public')].filter(file => /\.(ts|html|json|svg)$/.test(file));
   return files.flatMap(file => [...findLines(file, EXTERNAL_URL, '외부 주소'), ...findLines(file, SECRET, '비밀값으로 보이는 문자열')]);
 }
 
-/** 정책의 script-src가 같은 출처를 포함하고 허용 목록 밖의 곳을 열지 않았는지 본다. */
+// 정책의 script-src가 같은 출처를 포함하고 허용 목록 밖의 곳을 열지 않았는지 본다.
 function scriptSourceProblems(file, policy) {
   const sources = ((policy.match(/script-src ([^;]*)/) ?? [])[1] ?? '').trim().split(/\s+/);
   const outside = sources.filter(source => !ALLOWED_SCRIPT_SOURCES.includes(source));
@@ -68,7 +68,7 @@ function scriptSourceProblems(file, policy) {
   ];
 }
 
-/** 페이지의 보안 정책(CSP) 메타가 스크립트를 같은 출처로 한정하는지 본다. */
+// 페이지의 보안 정책(CSP) 메타가 스크립트를 같은 출처로 한정하는지 본다.
 function policyViolations() {
   const policy = (read('index.html').match(/Content-Security-Policy"\s+content="([^"]*)"/) ?? [])[1];
   if (!policy) {
@@ -81,7 +81,7 @@ function policyViolations() {
   return problems;
 }
 
-/** 배포 설정에 보안 헤더가 모두 있고 다른 사이트에 끼워 넣을 수 없는지 본다. */
+// 배포 설정에 보안 헤더가 모두 있고 다른 사이트에 끼워 넣을 수 없는지 본다.
 function headerViolations() {
   if (!exists('vercel.json')) {
     return ['vercel.json: 없다'];
@@ -94,7 +94,7 @@ function headerViolations() {
   return [...missing, ...scripts, ...framing];
 }
 
-/** 비밀값 파일이 저장소에 올라가지 않게 막혀 있는지, 빌드 결과에 인라인 스크립트와 소스맵이 없는지 본다. */
+// 비밀값 파일이 저장소에 올라가지 않게 막혀 있는지, 빌드 결과에 인라인 스크립트와 소스맵이 없는지 본다.
 function repositoryViolations() {
   const ignoresEnvironment = /^\.env$/m.test(read('.gitignore'));
   const builtFiles = filesUnder('dist');

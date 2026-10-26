@@ -11,7 +11,7 @@ const zlib = require('zlib');
 
 const root = process.cwd();
 const KILOBYTE = 1024;
-/** 화면은 초당 60번 그리므로 한 프레임은 약 16.7ms다. 계산(엔진과 컴퓨터 상대)은 그 5퍼센트 안에 끝나야 한다. */
+// 화면은 초당 60번 그리므로 한 프레임은 약 16.7ms다. 계산(엔진과 컴퓨터 상대)은 그 5퍼센트 안에 끝나야 한다.
 const FRAME_MILLISECONDS = 1000 / 60;
 const MAX_CALCULATION_RATIO = 0.05;
 const BENCH_FRAMES = 600;
@@ -30,7 +30,7 @@ const filesUnder = directory =>
 
 const kilobytes = bytes => bytes / KILOBYTE;
 
-/** 항목 하나를 기준과 비교해 출력하고, 넘으면 위반 문구를 돌려준다. */
+// 항목 하나를 기준과 비교해 출력하고, 넘으면 위반 문구를 돌려준다.
 function judge(name, value, limit, unit) {
   const over = value > limit;
   const limitText = `${Number(limit.toFixed(2))}${unit}`;
@@ -38,7 +38,7 @@ function judge(name, value, limit, unit) {
   return over ? [`${name} ${value.toFixed(2)}${unit} > ${limitText}`] : [];
 }
 
-/** 빌드 결과의 크기: 스크립트(압축), 파일 하나, 전체, 첫 페이지. */
+// 빌드 결과의 크기: 스크립트(압축), 파일 하나, 전체, 첫 페이지.
 function sizeViolations() {
   const dist = path.join(root, 'dist');
   if (!fs.existsSync(dist)) {
@@ -57,7 +57,7 @@ function sizeViolations() {
   ];
 }
 
-/** 프레임당 계산 시간: 가장 느린 측정(최댓값)을 프레임 수로 나눈 값이 한 프레임의 5퍼센트 안인가. */
+// 프레임당 계산 시간: 가장 느린 측정(최댓값)을 프레임 수로 나눈 값이 한 프레임의 5퍼센트 안인가.
 function frameViolations() {
   const report = path.join(root, 'coverage', 'bench.json');
   if (!fs.existsSync(report)) {

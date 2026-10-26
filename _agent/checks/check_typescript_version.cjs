@@ -15,17 +15,17 @@ const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'peerDependencies'
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const majorOf = text => Number((String(text).match(/\d+/) ?? [0])[0]);
 
-/** package.json에 선언된 의존성을 이름과 범위의 쌍으로 모은다. */
+// package.json에 선언된 의존성을 이름과 범위의 쌍으로 모은다.
 function declaredDependencies(manifest) {
   return DEPENDENCY_FIELDS.flatMap(field => Object.entries(manifest[field] ?? {}));
 }
 
-/** 선언된 범위가 TypeScript 7 이상이거나 올라갈 수 있는 값인가. */
+// 선언된 범위가 TypeScript 7 이상이거나 올라갈 수 있는 값인가.
 function isBannedSpec(spec) {
   return FLOATING_SPECS.includes(spec) || majorOf(spec) >= BANNED_MAJOR;
 }
 
-/** 설치된 TypeScript의 주 버전. 설치되어 있지 않으면 null. */
+// 설치된 TypeScript의 주 버전. 설치되어 있지 않으면 null.
 function installedMajor(root) {
   const file = path.join(root, 'node_modules', 'typescript', 'package.json');
   return fs.existsSync(file) ? majorOf(readJson(file).version) : null;
