@@ -93,6 +93,8 @@
           --security-opt no-new-privileges \
           --memory 256m \
           --pids-limit 256 \
+          --log-opt max-size=10m \
+          --log-opt max-file=3 \
           -p {{ server_host_port }}:{{ server_container_port }} \
           -v {{ server_data_path }}:/data \
           {% for key, value in server_env.items() %}

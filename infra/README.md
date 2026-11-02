@@ -181,7 +181,8 @@ ansible-playbook -i inventory.ini deploy.yml
 6. 서버 컨테이너 실행. `forest-clash` 네트워크, 호스트 포트 `58970`,
    `--restart always`, 데이터 폴더 연결, `server_env`의 환경변수.
    읽기 전용 파일 시스템(`--read-only`), 권한 전부 제거(`--cap-drop ALL`), 새 권한 금지(`no-new-privileges`),
-   메모리 256MB, 프로세스 256개로 제한한다. 서버가 쓰는 곳은 `/data` 하나다
+   메모리 256MB, 프로세스 256개로 제한한다. 서버가 쓰는 곳은 `/data` 하나다.
+   컨테이너 로그는 파일 하나 10MB, 3개까지만 남겨 로그 때문에 디스크가 차지 않게 한다
 7. `/healthz`가 200이 될 때까지 대기. 되지 않으면 실패로 끝난다
 
 컨테이너 실행 단계는 환경변수 값이 로그에 남지 않도록 출력을 숨긴다.
