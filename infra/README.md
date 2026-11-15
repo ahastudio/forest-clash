@@ -74,7 +74,8 @@ chmod 600 inventory.ini vars.yml
 
 게임은 빌드할 때 `VITE_SERVER_URL`에서 서버 주소를 읽는다.
 Vercel 프로젝트의 환경변수에 `wss://서버주소/ws`를 넣고 다시 배포한다.
-화면의 보안 정책(CSP)은 `connect-src`에 `wss:`를 이미 열어 두어 따로 바꾸지 않는다.
+화면의 보안 정책(CSP)은 `connect-src`에 `wss://forest-clash-server.a99.dev`만 열어 두었다(`index.html`, `vercel.json`).
+서버 주소를 바꾸면 두 파일의 이 값도 함께 바꾼다.
 
 ### 구글 로그인 설정
 

@@ -17,7 +17,7 @@
 - `server/main.go`가 읽는 환경 변수: `PORT`(기본 58970), `GOOGLE_CLIENT_ID`, `ALLOWED_ORIGIN`, `DATA_FILE`, `AUTH_STUB`. 구글 클라이언트 아이디가 없고 `AUTH_STUB`도 꺼져 있으면 시작하지 않는다.
 - `server/store.go`는 임시 파일에 쓴 뒤 이름을 바꿔 저장한다(`os.WriteFile`, `os.Rename`). 그래서 파일 하나가 아니라 같은 폴더에 쓸 수 있어야 한다.
 - 서버는 `/healthz`(`ok`)와 `/ws`만 가진다.
-- 게임 화면의 보안 정책(CSP)은 `connect-src`에 `wss:`를 이미 열어 두었다(`index.html`, `vercel.json`).
+- 게임 화면의 보안 정책(CSP)은 `connect-src`에 `wss://forest-clash-server.a99.dev`만 열어 두었다(`index.html`, `vercel.json`).
 
 ### 기존 패턴
 
