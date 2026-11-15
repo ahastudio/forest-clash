@@ -54,37 +54,37 @@ function drawHelpRow(g: Ctx, [head, body]: readonly [string, string], y: number)
 type PadControl = 'up' | 'left' | 'down' | 'right' | 'weakPunch' | 'strongPunch' | 'weakKick' | 'strongKick';
 
 interface KeySpec {
-  dx: number;
-  dy: number;
+  deltaX: number;
+  deltaY: number;
   control: PadControl;
   color?: string;
 }
 
 // 방향키 네 개와 버튼 네 개의 배치. 위 줄은 약펀치(왼쪽)와 강펀치(오른쪽), 아래 줄은 약킥(왼쪽)과 강킥(오른쪽).
 const PAD_KEYS: readonly KeySpec[] = [
-  { dx: 44, dy: 0, control: 'up' },
-  { dx: 0, dy: 38, control: 'left' },
-  { dx: 44, dy: 38, control: 'down' },
-  { dx: 88, dy: 38, control: 'right' },
-  { dx: 170, dy: 0, control: 'weakPunch', color: '#a04a4a' },
-  { dx: 214, dy: 0, control: 'strongPunch', color: '#6a3a3a' },
-  { dx: 170, dy: 38, control: 'weakKick', color: '#3a7a8a' },
-  { dx: 214, dy: 38, control: 'strongKick', color: '#3a5a6a' },
+  { deltaX: 44, deltaY: 0, control: 'up' },
+  { deltaX: 0, deltaY: 38, control: 'left' },
+  { deltaX: 44, deltaY: 38, control: 'down' },
+  { deltaX: 88, deltaY: 38, control: 'right' },
+  { deltaX: 170, deltaY: 0, control: 'weakPunch', color: '#a04a4a' },
+  { deltaX: 214, deltaY: 0, control: 'strongPunch', color: '#6a3a3a' },
+  { deltaX: 170, deltaY: 38, control: 'weakKick', color: '#3a7a8a' },
+  { deltaX: 214, deltaY: 38, control: 'strongKick', color: '#3a5a6a' },
 ];
 
 interface Caption {
   text: string;
-  dx: number;
-  dy: number;
+  deltaX: number;
+  deltaY: number;
   color: string;
   align: CanvasTextAlign;
 }
 
 const PAD_CAPTIONS: readonly Caption[] = [
-  { text: '약', dx: 189, dy: -6, color: '#e8d0c8', align: 'center' },
-  { text: '강', dx: 233, dy: -6, color: '#e8d0c8', align: 'center' },
-  { text: '펀치', dx: 262, dy: 22, color: '#ffd0c0', align: 'left' },
-  { text: '킥', dx: 262, dy: 60, color: '#c0e8f0', align: 'left' },
+  { text: '약', deltaX: 189, deltaY: -6, color: '#e8d0c8', align: 'center' },
+  { text: '강', deltaX: 233, deltaY: -6, color: '#e8d0c8', align: 'center' },
+  { text: '펀치', deltaX: 262, deltaY: 22, color: '#ffd0c0', align: 'left' },
+  { text: '킥', deltaX: 262, deltaY: 60, color: '#c0e8f0', align: 'left' },
 ];
 
 function drawKey(g: Ctx, key: { at: Point; label: string; color?: string }): void {
@@ -99,15 +99,15 @@ function drawKey(g: Ctx, key: { at: Point; label: string; color?: string }): voi
 
 function drawPadKeys(g: Ctx, origin: Point, labels: Record<PadControl, string>): void {
   for (const key of PAD_KEYS) {
-    const at = { x: origin.x + key.dx, y: origin.y + key.dy };
+    const at = { x: origin.x + key.deltaX, y: origin.y + key.deltaY };
     drawKey(g, { at, label: labels[key.control], color: key.color });
   }
 }
 
 function drawPadCaptions(g: Ctx, origin: Point): void {
   for (const caption of PAD_CAPTIONS) {
-    const { text, dx, dy, color, align } = caption;
-    smallText(g, text, { x: origin.x + dx, y: origin.y + dy, size: 12, color, align, weight: 800 });
+    const { text, deltaX, deltaY, color, align } = caption;
+    smallText(g, text, { x: origin.x + deltaX, y: origin.y + deltaY, size: 12, color, align, weight: 800 });
   }
 }
 

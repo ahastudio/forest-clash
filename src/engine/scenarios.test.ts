@@ -491,8 +491,8 @@ describe('이동', () => {
 });
 
 describe('공중 기술', () => {
-  const kickOutcome = (jump: Script, dist: number, at: number, defend: Partial<PadInput>): string => {
-    const duel = setup(dist);
+  const kickOutcome = (jump: Script, distance: number, at: number, defend: Partial<PadInput>): string => {
+    const duel = setup(distance);
     drive(duel, 80, i => (i === at ? { D: 1 } : jump(i)), hold(defend));
     if (duel.events.some(e => e.type === 'block' && e.moveId === 'jd')) {
       return '막음';
@@ -504,10 +504,10 @@ describe('공중 기술', () => {
   it('점프 킥은 상단이라 서서는 막고 앉으면 맞는다', () => {
     const results: Record<string, Set<string>> = { stand: new Set(), crouch: new Set() };
     for (const jump of [lowHop, highJump]) {
-      for (const dist of [95, 135]) {
+      for (const distance of [95, 135]) {
         for (let at = 4; at <= 44; at += 4) {
-          results.stand?.add(kickOutcome(jump, dist, at, { r: 1 }));
-          results.crouch?.add(kickOutcome(jump, dist, at, { r: 1, d: 1 }));
+          results.stand?.add(kickOutcome(jump, distance, at, { r: 1 }));
+          results.crouch?.add(kickOutcome(jump, distance, at, { r: 1, d: 1 }));
         }
       }
     }

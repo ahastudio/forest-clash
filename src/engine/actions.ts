@@ -94,7 +94,7 @@ export function specialInput(fighter: Fighter): MoveId | null {
     return 'super';
   }
   const latest = latestMotion(fighter);
-  const rule = SPECIAL_RULES.find(r => r.motion === latest && pressed(fighter, r.button, SPECIAL_BUTTON_AGE));
+  const rule = SPECIAL_RULES.find(rule => rule.motion === latest && pressed(fighter, rule.button, SPECIAL_BUTTON_AGE));
   return rule ? rule.move : null;
 }
 
@@ -125,7 +125,7 @@ const FORWARD_NORMALS: Partial<Record<Button, MoveId>> = { C: 'c6', D: 'd6' };
 
 // 가장 먼저 누른(나이가 가장 큰) 버튼. 눌린 버튼이 없으면 null.
 function oldestPressedButton(fighter: Fighter): Button | null {
-  const candidates = BUTTONS.filter(b => pressed(fighter, b));
+  const candidates = BUTTONS.filter(button => pressed(fighter, button));
   return candidates.reduce<Button | null>(
     (best, b) => (best === null || fighter.buttonAge[b] > fighter.buttonAge[best] ? b : best),
     null,

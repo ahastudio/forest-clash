@@ -116,7 +116,7 @@ export const SOUNDS: Record<SoundName, (power: number) => Voice[]> = {
   ],
   round: () => [tone('triangle', [392, 392], [0.22, 0.3])],
   fight: () => [
-    ...FIGHT_CHORD.map(f => tone('square', [f, f], [0.35, 0.16])),
+    ...FIGHT_CHORD.map(frequency => tone('square', [frequency, frequency], [0.35, 0.16])),
     tone('sawtooth', [130, 130], [0.4, 0.2]),
   ],
   tick: () => [tone('square', [880, 880], [0.05, 0.12])],

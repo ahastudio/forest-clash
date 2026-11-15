@@ -42,9 +42,9 @@ const RAYS = 8;
 const times = <T>(count: number, make: (index: number) => T): T[] => Array.from({ length: count }, (_, i) => make(i));
 
 // 별 모양의 꼭짓점: 바깥 꼭짓점과 안쪽 꼭짓점이 번갈아 열 개.
-const STAR_POINTS: readonly Point[] = times(STAR_TIPS * 2, i => {
-  const radius = i % 2 ? STAR_INNER : STAR_OUTER;
-  const angle = (i * Math.PI) / STAR_TIPS;
+const STAR_POINTS: readonly Point[] = times(STAR_TIPS * 2, index => {
+  const radius = index % 2 ? STAR_INNER : STAR_OUTER;
+  const angle = (index * Math.PI) / STAR_TIPS;
   return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
 });
 
@@ -195,7 +195,7 @@ export class Effects {
         patch(p, { x: p.x + p.velocityX, y: p.y + p.velocityY, velocityY: p.velocityY + gravity, life: p.life - 1 });
       }
     }
-    this.particles = this.particles.filter(p => p.life > 0);
+    this.particles = this.particles.filter(particle => particle.life > 0);
   }
 
   /**
@@ -228,6 +228,6 @@ export class Effects {
         burst.life--;
       }
     }
-    this.bursts = this.bursts.filter(b => b.life > 0);
+    this.bursts = this.bursts.filter(burst => burst.life > 0);
   }
 }

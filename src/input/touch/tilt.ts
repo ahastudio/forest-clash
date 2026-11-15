@@ -64,9 +64,9 @@ export function directionsOf(tilt: Tilt): Record<Direction, boolean> {
  * 손가락이 끝까지 민 거리를 넘으면 기준점을 손가락 쪽으로 끌고 온다. 그래서 반대로 밀 때 바로 반응한다.
  */
 export function followOrigin(origin: Point, point: Point, reach: number): Point {
-  const dx = point.x - origin.x;
-  const dy = point.y - origin.y;
-  const distance = Math.hypot(dx, dy);
+  const deltaX = point.x - origin.x;
+  const deltaY = point.y - origin.y;
+  const distance = Math.hypot(deltaX, deltaY);
   const excess = distance > reach ? (distance - reach) / distance : 0;
-  return { x: origin.x + dx * excess, y: origin.y + dy * excess };
+  return { x: origin.x + deltaX * excess, y: origin.y + deltaY * excess };
 }

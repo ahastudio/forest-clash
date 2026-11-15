@@ -30,9 +30,9 @@ const START_FRAMES = 130;
 const LEFT_X = 500;
 
 /**
- * 두 캐릭터를 dist 간격으로 마주 세우고 라운드 시작 안내가 끝난 상태로 만든다.
+ * 두 캐릭터를 distance 간격으로 마주 세우고 라운드 시작 안내가 끝난 상태로 만든다.
  */
-export function setup(dist = 90, mode: GameMode = '2p'): Duel {
+export function setup(distance = 90, mode: GameMode = '2p'): Duel {
   const engine = createEngine();
   engine.newMatch(mode);
   for (let i = 0; i < START_FRAMES; i++) {
@@ -40,7 +40,7 @@ export function setup(dist = 90, mode: GameMode = '2p'): Duel {
   }
   const [R, L] = engine.fighters;
   patch(L, { x: LEFT_X, face: 1 });
-  patch(R, { x: LEFT_X + dist, face: -1 });
+  patch(R, { x: LEFT_X + distance, face: -1 });
   return { engine, L, R, events: [] };
 }
 

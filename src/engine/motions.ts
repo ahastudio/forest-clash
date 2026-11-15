@@ -72,7 +72,7 @@ const isWithin = (match: Match | null, limits: MotionLimits): match is Match =>
  */
 export function motionAge(fighter: Fighter, name: MotionName, limits: MotionLimits): number {
   const matches = MOTIONS[name].map(sequence => matchSequence(fighter.directionHistory, sequence));
-  const ages = matches.filter(m => isWithin(m, limits)).map(m => m.age);
+  const ages = matches.filter(match => isWithin(match, limits)).map(m => m.age);
   return ages.length ? Math.min(...ages) : -1;
 }
 
