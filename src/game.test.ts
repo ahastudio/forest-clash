@@ -7,7 +7,7 @@ afterEach(() => vi.restoreAllMocks());
 
 function setup(loaded = true) {
   const { g, texts } = fakeCanvas();
-  const canvas = { getContext: () => g, style: { cursor: '' } };
+  const canvas = { getContext: () => g, style: { cursor: '' }, dataset: {} as Record<string, string> };
   const game = new Game(canvas as unknown as HTMLCanvasElement, 'v1', fakeSprites(loaded).sprites);
   return { game, g, texts, canvas };
 }
@@ -168,6 +168,16 @@ describe('게임', () => {
     game.menu.hover({ x: 0, y: 0 });
     game.render(0);
     expect(canvas.style.cursor).toBe('default');
+  });
+
+  it('그릴 때마다 지금 장면을 캔버스의 data-phase에 적는다', () => {
+    const { game, canvas } = setup();
+    game.render(0);
+    expect(canvas.dataset.phase).toBe('title');
+    startMatch(game);
+    game.render(0);
+    expect(canvas.dataset.phase).toBe(game.engine.phase);
+    expect(canvas.dataset.phase).not.toBe('title');
   });
 
   it('타이틀이 아니면 마우스가 버튼 자리에 있어도 커서는 기본 모양이다', () => {

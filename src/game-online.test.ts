@@ -21,7 +21,7 @@ const settle = () => new Promise(resolve => setTimeout(resolve, 0));
 function setup(): World {
   const { g, texts } = fakeCanvas();
   const game = new Game(
-    { getContext: () => g, style: {} } as unknown as HTMLCanvasElement,
+    { getContext: () => g, style: {}, dataset: {} } as unknown as HTMLCanvasElement,
     'v1',
     fakeSprites(true).sprites,
   );

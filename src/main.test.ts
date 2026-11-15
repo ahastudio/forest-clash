@@ -22,6 +22,7 @@ describe('시작', () => {
     const canvas = {
       getContext: () => g,
       style: {},
+      dataset: {},
       addEventListener: (type: string) => listened.push(`canvas:${type}`),
     };
     const frames: (() => void)[] = [];
@@ -59,7 +60,7 @@ describe('시작', () => {
   it('버전 정보가 없어도 시작한다', async () => {
     const { g } = fakeCanvas();
     vi.stubGlobal('document', {
-      getElementById: () => ({ getContext: () => g, style: {}, addEventListener: () => undefined }),
+      getElementById: () => ({ getContext: () => g, style: {}, dataset: {}, addEventListener: () => undefined }),
       querySelector: findElement(null),
       addEventListener: () => undefined,
     });

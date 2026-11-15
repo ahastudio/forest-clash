@@ -227,11 +227,22 @@ export class Game {
     this.canvas.style.cursor = overButton ? 'pointer' : 'default';
   }
 
+  // 커서 모양과 현재 장면 표시처럼, 캔버스 바깥 페이지가 알아야 할 상태를 맞춘다.
+  private syncPage(): void {
+    this.applyCursor();
+    this.markPhase();
+  }
+
+  // 페이지가 장면에 따라 요소를 보이거나 숨길 수 있게, 지금 장면을 캔버스의 data-phase에 적는다.
+  private markPhase(): void {
+    this.canvas.dataset.phase = this.engine.phase;
+  }
+
   /**
    * 지금 상태를 캔버스에 그린다. now는 깜빡임에 쓰는 현재 시각(밀리초)이다.
    */
   render(now: number): void {
-    this.applyCursor();
+    this.syncPage();
     const guide = GUIDES[this.inputKind];
     const view = {
       g: this.g,
