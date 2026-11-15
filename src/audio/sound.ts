@@ -15,6 +15,7 @@ export type { SoundEvent } from './output';
 type AudioContextConstructor = new () => AudioContext;
 
 const audioContextClass = (): AudioContextConstructor | undefined => {
+  // 사파리 옛 버전은 webkitAudioContext로만 열리는데, 이 이름은 표준 창 타입에 없다.
   const scope = window as unknown as {
     AudioContext?: AudioContextConstructor;
     webkitAudioContext?: AudioContextConstructor;

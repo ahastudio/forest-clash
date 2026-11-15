@@ -6,6 +6,7 @@ import { FixedStepLoop } from './loop';
 import { readOnlineConfig } from './online/config';
 import { createSession } from './online/create';
 
+// index.html의 id가 c인 요소는 <canvas>다.
 const canvas = document.getElementById('c') as HTMLCanvasElement;
 const version = document.querySelector<HTMLMetaElement>('meta[name="game-version"]')?.content ?? '';
 const game = new Game(canvas, version);

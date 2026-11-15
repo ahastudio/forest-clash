@@ -47,7 +47,9 @@ function derive(id: MoveId, spec: MoveSpec): Move {
   return { ...spec, id, hitstop, start, end, total, windows, ...stuns(spec) };
 }
 
+// Object.keys는 string[]을 돌려주지만 SPECS의 키는 MoveId뿐이다.
 const ids = Object.keys(SPECS) as MoveId[];
 
 export const MOVE_LIST: readonly MoveId[] = ids;
+// ids의 모든 MoveId를 키로 채우므로 Record<MoveId, Move>다.
 export const MOVES = Object.fromEntries(ids.map(id => [id, derive(id, SPECS[id])])) as Record<MoveId, Move>;

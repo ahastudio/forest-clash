@@ -70,6 +70,7 @@ export class Output {
    */
   resume(): void {
     if (this.audioContext.state === 'suspended') {
+      // BaseAudioContext에는 resume이 없고, 브라우저가 여는 장치는 AudioContext다.
       void (this.audioContext as AudioContext).resume();
     }
   }
