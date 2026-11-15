@@ -89,19 +89,19 @@ describe('방어', () => {
     const counter = situation({
       me: { state: 'blockstun', stunFrames: 1 },
       foe: { state: 'attack', moveId: 'd5', elapsed: 20 },
-      dist: 90,
+      distance: 90,
     });
     expect(holdGuard(counter)?.press).toEqual({ A: 1 });
     const early = situation({
       me: { state: 'blockstun', stunFrames: 1 },
       foe: { state: 'attack', moveId: 'd5', elapsed: 5 },
-      dist: 90,
+      distance: 90,
     });
     expect(holdGuard(early)?.press).toEqual({ l: 1 });
     const far = situation({
       me: { state: 'blockstun', stunFrames: 1 },
       foe: { state: 'attack', moveId: 'd5', elapsed: 20 },
-      dist: 200,
+      distance: 200,
     });
     expect(holdGuard(far)?.press).toEqual({ l: 1 });
   });
@@ -113,12 +113,12 @@ describe('방어', () => {
 
   it('상대가 공격 중이 아니거나 멀면 대응하지 않는다', () => {
     expect(answerAttack(situation())).toBeNull();
-    expect(answerAttack(situation({ foe: { state: 'attack', moveId: 'a5', elapsed: 1 }, dist: 200 }))).toBeNull();
+    expect(answerAttack(situation({ foe: { state: 'attack', moveId: 'a5', elapsed: 1 }, distance: 200 }))).toBeNull();
   });
 
   it('새 기술을 보면 반응 지연을 새로 뽑는다', () => {
     rolls(0.5, 0.99);
-    const context = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 1 }, dist: 150 });
+    const context = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 1 }, distance: 150 });
     answerAttack(context);
     expect(context.mind.lastMove).toBe('c5');
     expect(context.mind.reaction).toBe(12);
@@ -128,7 +128,7 @@ describe('방어', () => {
 
   it('헛친 기술의 후딜에 반격한다', () => {
     rolls(0.1, 0.1);
-    const context = situation({ foe: { state: 'attack', moveId: 'a5', elapsed: 8 }, dist: 100 });
+    const context = situation({ foe: { state: 'attack', moveId: 'a5', elapsed: 8 }, distance: 100 });
     const decision = answerAttack(context);
     expect(decision?.press).toEqual({ A: 1 });
     expect(decision?.wait).toBe(14);
@@ -136,7 +136,7 @@ describe('방어', () => {
 
   it('발동이 느린 기술은 약펀치로 끊는다', () => {
     rolls(0.5, 0.01);
-    const context = situation({ foe: { state: 'attack', moveId: 'd5', elapsed: 2 }, dist: 100, level: 3 });
+    const context = situation({ foe: { state: 'attack', moveId: 'd5', elapsed: 2 }, distance: 100, level: 3 });
     const decision = answerAttack(context);
     expect(decision?.press).toEqual({ A: 1 });
     expect(decision?.wait).toBe(12);
@@ -144,19 +144,19 @@ describe('방어', () => {
 
   it('기술이 닿기 전에 막는다. 하단은 앉아서 막는다', () => {
     rolls(0.5, 0.99);
-    const mid = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 8 }, dist: 100 });
+    const mid = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 8 }, distance: 100 });
     expect(answerAttack(mid)?.press).toEqual({ l: 1 });
     rolls(0.5, 0.99);
-    const low = situation({ foe: { state: 'attack', moveId: 'd2', elapsed: 10 }, dist: 100 });
+    const low = situation({ foe: { state: 'attack', moveId: 'd2', elapsed: 10 }, distance: 100 });
     expect(answerAttack(low)?.press).toEqual({ l: 1, d: 1 });
   });
 
   it('막는 시기가 아니거나 놓치면 대응하지 않는다', () => {
     rolls(0.5);
-    const early = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 1 }, dist: 100 });
+    const early = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 1 }, distance: 100 });
     expect(answerAttack(early)).toBeNull();
     rolls(0.5, 0.0);
-    const missed = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 8 }, dist: 100 });
+    const missed = situation({ foe: { state: 'attack', moveId: 'c5', elapsed: 8 }, distance: 100 });
     expect(answerAttack(missed)).toBeNull();
   });
 });
@@ -164,64 +164,64 @@ describe('방어', () => {
 describe('공격', () => {
   it('날아드는 상대는 대공 어퍼 입력으로 받는다', () => {
     rolls(0);
-    const decision = antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, dist: 80 }));
+    const decision = antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, distance: 80 }));
     expect(decision?.press).toEqual({ r: 1 });
     expect(decision?.sequence).toHaveLength(5);
     expect(decision?.wait).toBe(40);
   });
 
   it('상대가 낮거나 올라가는 중이거나 멀거나 쉬는 중이면 받지 않는다', () => {
-    expect(antiAir(situation({ foe: { altitude: 10, velocityY: -4 }, dist: 80 }))).toBeNull();
-    expect(antiAir(situation({ foe: { altitude: 80, velocityY: 4 }, dist: 80 }))).toBeNull();
-    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, dist: 200 }))).toBeNull();
-    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, dist: 80, wait: 5 }))).toBeNull();
+    expect(antiAir(situation({ foe: { altitude: 10, velocityY: -4 }, distance: 80 }))).toBeNull();
+    expect(antiAir(situation({ foe: { altitude: 80, velocityY: 4 }, distance: 80 }))).toBeNull();
+    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, distance: 200 }))).toBeNull();
+    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, distance: 80, wait: 5 }))).toBeNull();
   });
 
   it('운이 따르지 않으면 대공 어퍼를 내지 않는다', () => {
     rolls(0.99);
-    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, dist: 80 }))).toBeNull();
+    expect(antiAir(situation({ foe: { altitude: 80, velocityY: -4 }, distance: 80 }))).toBeNull();
   });
 
   it('쉬는 동안은 움직이지 않고, 너무 멀면 다가온다', () => {
-    expect(coolDown(situation({ wait: 5, dist: 100 }))?.press).toEqual({});
-    expect(coolDown(situation({ wait: 5, dist: 200 }))?.press).toEqual({ r: 1 });
+    expect(coolDown(situation({ wait: 5, distance: 100 }))?.press).toEqual({});
+    expect(coolDown(situation({ wait: 5, distance: 200 }))?.press).toEqual({ r: 1 });
     expect(coolDown(situation())).toBeNull();
   });
 
   it('분노 게이지가 가득이고 가까우면 필살기 입력을 낸다', () => {
     rolls(0);
-    const decision = superMove(situation({ me: { rage: 100 }, dist: 80 }));
+    const decision = superMove(situation({ me: { rage: 100 }, distance: 80 }));
     expect(decision?.sequence).toHaveLength(8);
     expect(decision?.wait).toBe(60);
   });
 
   it('게이지가 모자라거나 멀거나 운이 나쁘면 필살기를 내지 않는다', () => {
-    expect(superMove(situation({ me: { rage: 50 }, dist: 80 }))).toBeNull();
-    expect(superMove(situation({ me: { rage: 100 }, dist: 150 }))).toBeNull();
+    expect(superMove(situation({ me: { rage: 50 }, distance: 80 }))).toBeNull();
+    expect(superMove(situation({ me: { rage: 100 }, distance: 150 }))).toBeNull();
     rolls(0.99);
-    expect(superMove(situation({ me: { rage: 100 }, dist: 80 }))).toBeNull();
+    expect(superMove(situation({ me: { rage: 100 }, distance: 80 }))).toBeNull();
   });
 });
 
 describe('접근과 공격 고르기', () => {
   it('아주 멀면 앞으로 걷고 가끔 앞을 두 번 눌러 달려서 다가간다', () => {
     rolls(0.5);
-    expect(engage(situation({ dist: 300 }))?.press).toEqual({ r: 1 });
+    expect(engage(situation({ distance: 300 }))?.press).toEqual({ r: 1 });
     rolls(0.01);
-    const rush = engage(situation({ dist: 300 }));
+    const rush = engage(situation({ distance: 300 }));
     expect(rush?.sequence).toHaveLength(12);
     expect(rush?.wait).toBe(20);
   });
 
   it('조금 멀면 다가오고 가끔 낮은 점프로 파고든다', () => {
     rolls(0.5);
-    expect(engage(situation({ dist: 150 }))?.press).toEqual({ r: 1 });
+    expect(engage(situation({ distance: 150 }))?.press).toEqual({ r: 1 });
     rolls(0.005);
-    const hop = engage(situation({ dist: 150 }));
+    const hop = engage(situation({ distance: 150 }));
     expect(hop?.press).toEqual({ r: 1, u: 1 });
     expect(hop?.wait).toBe(40);
     rolls(0.005);
-    expect(engage(situation({ dist: 200 }))?.press).toEqual({ r: 1 });
+    expect(engage(situation({ distance: 200 }))?.press).toEqual({ r: 1 });
   });
 
   const normalRows: [number, object, number | undefined][] = [
@@ -236,14 +236,14 @@ describe('접근과 공격 고르기', () => {
   ];
   it.each(normalRows)('사거리 안에서 난수가 %s이면 보통 공격을 고른다', (roll, press, wait) => {
     rolls(roll * 0.8 + 0.001);
-    const decision = engage(situation({ dist: 80 }));
+    const decision = engage(situation({ distance: 80 }));
     expect(decision?.press).toEqual(press);
     expect(decision?.wait).toBe(wait);
   });
 
   it('아주 가까우면 앞으로 붙으며 강펀치(잡기)를 쓴다', () => {
     rolls(0.01);
-    const decision = engage(situation({ dist: 60 }));
+    const decision = engage(situation({ distance: 60 }));
     expect(decision?.press).toEqual({ r: 1, C: 1 });
   });
 
@@ -253,21 +253,21 @@ describe('접근과 공격 고르기', () => {
       input: { l: false, r: true, u: false, d: false, A: false, B: false, C: false, D: false },
     };
     rolls(0.01, 0.1);
-    expect(engage(situation({ foe: standing, dist: 60, level: 3 }))?.press).toEqual({ r: 1, C: 1 });
+    expect(engage(situation({ foe: standing, distance: 60, level: 3 }))?.press).toEqual({ r: 1, C: 1 });
     rolls(0.15, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ d: 1, B: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ d: 1, B: 1 });
     rolls(0.27, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ d: 1, A: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ d: 1, A: 1 });
     rolls(0.33, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ A: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ A: 1 });
     rolls(0.38, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ B: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ B: 1 });
     rolls(0.5, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ r: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ r: 1 });
     rolls(0.62, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({ l: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({ l: 1 });
     rolls(0.9, 0.1);
-    expect(engage(situation({ foe: standing, dist: 80, level: 3 }))?.press).toEqual({});
+    expect(engage(situation({ foe: standing, distance: 80, level: 3 }))?.press).toEqual({});
   });
 
   it('앉아서 막는 상대에게는 앞+강킥으로 상단을 노린다', () => {
@@ -276,18 +276,18 @@ describe('접근과 공격 고르기', () => {
       input: { l: false, r: true, u: false, d: true, A: false, B: false, C: false, D: false },
     };
     rolls(0.2, 0.1);
-    expect(engage(situation({ foe: crouching, dist: 80, level: 3 }))?.press).toEqual({ r: 1, D: 1 });
+    expect(engage(situation({ foe: crouching, distance: 80, level: 3 }))?.press).toEqual({ r: 1, D: 1 });
   });
 
   it('상대가 왼쪽에 있으면 왼쪽을 향한 방어 자세를 읽는다', () => {
     const left = { x: 420, input: { l: true, r: false, u: false, d: false, A: false, B: false, C: false, D: false } };
     rolls(0.15, 0.1);
-    expect(engage(situation({ foe: left, dist: 80, level: 3 }))?.press).toEqual({ d: 1, B: 1 });
+    expect(engage(situation({ foe: left, distance: 80, level: 3 }))?.press).toEqual({ d: 1, B: 1 });
   });
 
   it('막기 경직 중인 상대도 막고 있는 것으로 본다', () => {
     rolls(0.3, 0.1);
-    const decision = engage(situation({ foe: { state: 'blockstun' }, dist: 80, level: 3 }));
+    const decision = engage(situation({ foe: { state: 'blockstun' }, distance: 80, level: 3 }));
     expect(decision?.press).toEqual({ A: 1 });
   });
 
@@ -297,7 +297,7 @@ describe('접근과 공격 고르기', () => {
       input: { l: false, r: true, u: false, d: false, A: false, B: false, C: false, D: false },
     };
     rolls(0.01, 0.99);
-    expect(engage(situation({ foe: standing, dist: 80, level: 2 }))?.press).toEqual({ A: 1 });
+    expect(engage(situation({ foe: standing, distance: 80, level: 2 }))?.press).toEqual({ A: 1 });
   });
 });
 

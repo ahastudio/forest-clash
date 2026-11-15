@@ -35,7 +35,7 @@ export interface Mind {
 export interface Context {
   me: Fighter;
   foe: Fighter;
-  dist: number;
+  distance: number;
   toward: Side;
   away: Side;
   mind: Mind;

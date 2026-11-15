@@ -19,9 +19,9 @@ const FREE_STATES = ['idle', 'walk', 'crouch', 'run'];
 const roll = ({ random }: Mind, chance: number): boolean => random() < chance;
 
 // 상대 기술이 끝나 가는 틈에 반격할 수 있는가.
-function canCounterBlocked({ me, foe, dist }: Context): boolean {
+function canCounterBlocked({ me, foe, distance }: Context): boolean {
   const move = attackMove(foe);
-  return !!move && me.stunFrames <= 2 && dist <= PUNISH_RANGE && foe.elapsed > move.end;
+  return !!move && me.stunFrames <= 2 && distance <= PUNISH_RANGE && foe.elapsed > move.end;
 }
 
 // 막는 자세를 유지한다. 앉아서 막고 있었으면 계속 앉는다.
@@ -56,14 +56,14 @@ function noticeAttack({ foe, mind, difficulty }: Context): void {
 }
 
 // 헛친 기술의 후딜은 약펀치로 반격한다.
-function punishRecovery({ foe, dist, mind, difficulty }: Context, move: Move): Decision | null {
-  const open = foe.elapsed > move.end && !foe.contact && dist <= PUNISH_RANGE;
+function punishRecovery({ foe, distance, mind, difficulty }: Context, move: Move): Decision | null {
+  const open = foe.elapsed > move.end && !foe.contact && distance <= PUNISH_RANGE;
   return open && roll(mind, difficulty.punish) ? holdThenWait({ A: 1 }, PUNISH_WAIT) : null;
 }
 
 // 발동이 느린 기술은 더 빠른 약펀치로 끊는다(카운터 히트).
-function interruptSlowMove({ foe, dist, mind, difficulty }: Context, move: Move): Decision | null {
-  const slow = move.start - foe.elapsed >= STUFF_MIN_STARTUP && dist <= STUFF_RANGE && !move.grab;
+function interruptSlowMove({ foe, distance, mind, difficulty }: Context, move: Move): Decision | null {
+  const slow = move.start - foe.elapsed >= STUFF_MIN_STARTUP && distance <= STUFF_RANGE && !move.grab;
   return slow && roll(mind, difficulty.interrupt * STUFF_RATE) ? holdThenWait({ A: 1 }, STUFF_WAIT) : null;
 }
 
@@ -82,7 +82,7 @@ function blockIncoming({ foe, away, mind, difficulty }: Context, move: Move): De
  */
 export const answerAttack: Tactic = context => {
   const move = attackMove(context.foe);
-  if (!move || context.dist >= SEE_ATTACK_RANGE) {
+  if (!move || context.distance >= SEE_ATTACK_RANGE) {
     return null;
   }
   noticeAttack(context);

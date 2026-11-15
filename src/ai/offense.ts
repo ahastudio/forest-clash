@@ -25,8 +25,9 @@ const roll = ({ random }: Mind, chance: number): boolean => random() < chance;
 /**
  * 날아드는 상대는 대공 어퍼(→↓ 두 방향을 차례로, 위로 올려치는 입력)로 받는다.
  */
-export const antiAir: Tactic = ({ me: _me, foe, dist, toward, mind, difficulty }) => {
-  const falling = foe.altitude > ANTI_AIR_MIN_HEIGHT && foe.velocityY < 0 && dist < ANTI_AIR_RANGE && mind.wait === 0;
+export const antiAir: Tactic = ({ foe, distance, toward, mind, difficulty }) => {
+  const falling =
+    foe.altitude > ANTI_AIR_MIN_HEIGHT && foe.velocityY < 0 && distance < ANTI_AIR_RANGE && mind.wait === 0;
   if (!falling || !roll(mind, ANTI_AIR_RATE * difficulty.antiAir)) {
     return null;
   }
@@ -37,18 +38,18 @@ export const antiAir: Tactic = ({ me: _me, foe, dist, toward, mind, difficulty }
 /**
  * 쉬는 동안은 움직이지 않는다. 너무 멀면 다가온다.
  */
-export const coolDown: Tactic = ({ dist, toward, mind }) => {
+export const coolDown: Tactic = ({ distance, toward, mind }) => {
   if (mind.wait <= 0) {
     return null;
   }
-  return hold(dist > HOLD_BACK_FAR ? go(toward) : {});
+  return hold(distance > HOLD_BACK_FAR ? go(toward) : {});
 };
 
 /**
  * 분노 게이지가 가득이면 가까울 때 분노 필살기(↓→↓→ + 강펀치)를 낸다.
  */
-export const superMove: Tactic = ({ me, dist, toward, mind }) => {
-  if (me.rage < RAGE_MAX || dist >= SUPER_RANGE || !roll(mind, SUPER_RATE)) {
+export const superMove: Tactic = ({ me, distance, toward, mind }) => {
+  if (me.rage < RAGE_MAX || distance >= SUPER_RANGE || !roll(mind, SUPER_RATE)) {
     return null;
   }
   const forward = go(toward);
@@ -62,18 +63,18 @@ function rush({ toward, away }: Context): Decision {
 }
 
 // 멀리서 다가오다가 가끔 낮은 점프로 파고든다.
-function approach({ dist, toward }: Context, chance: number): Decision {
+function approach({ distance, toward }: Context, chance: number): Decision {
   const forward = go(toward);
-  const hop = dist < HOP_RANGE && chance < HOP_RATE;
+  const hop = distance < HOP_RANGE && chance < HOP_RATE;
   return hop ? holdThenWait({ ...forward, u: 1 }, 40) : hold(forward);
 }
 
 // 거리에 따른 접근. 공격할 거리 안이면 null.
 function closeIn(context: Context, chance: number): Decision | null {
-  if (context.dist > RUSH_RANGE) {
+  if (context.distance > RUSH_RANGE) {
     return chance < RUSH_RATE ? rush(context) : hold(go(context.toward));
   }
-  return context.dist > ATTACK_RANGE + APPROACH_MARGIN ? approach(context, chance) : null;
+  return context.distance > ATTACK_RANGE + APPROACH_MARGIN ? approach(context, chance) : null;
 }
 
 // 공격 하나: chance가 below보다 작고 조건이 맞으면 press를 누르고 wait만큼 쉰다.
@@ -89,7 +90,12 @@ const AWAY = (context: Context): Partial<AiPad> => go(context.away);
 
 // 보통 때의 공격 고르기. 위에서부터 처음 맞는 것을 쓴다.
 const NORMAL_ATTACKS: readonly Attack[] = [
-  { below: 0.03, when: c => c.dist <= GRAB_RANGE, press: c => ({ ...AT(c), C: 1 }), wait: 40 },
+  {
+    below: 0.03,
+    when: context => context.distance <= GRAB_RANGE,
+    press: context => ({ ...AT(context), C: 1 }),
+    wait: 40,
+  },
   { below: 0.1, press: () => ({ A: 1 }), wait: 12 },
   { below: 0.14, press: () => ({ B: 1 }), wait: 16 },
   { below: 0.17, press: () => ({ d: 1, A: 1 }), wait: 12 },
@@ -118,19 +124,24 @@ function readGuard({ me, foe }: Context): Guard {
 // 막고 있는 상대를 읽은 자세에 맞춰 압박한다.
 function pressureAttacks(guard: Guard): readonly Attack[] {
   return [
-    { below: 0.12, when: c => c.dist <= GRAB_RANGE, press: c => ({ ...AT(c), C: 1 }), wait: 40 },
+    {
+      below: 0.12,
+      when: context => context.distance <= GRAB_RANGE,
+      press: context => ({ ...AT(context), C: 1 }),
+      wait: 40,
+    },
     { below: 0.2, when: () => guard.standing, press: () => ({ d: 1, B: 1 }), wait: 16 },
     { below: 0.26, when: () => guard.standing, press: () => ({ d: 1, A: 1 }), wait: 12 },
-    { below: 0.2, when: () => guard.crouching, press: c => ({ ...AT(c), D: 1 }), wait: 36 },
+    { below: 0.2, when: () => guard.crouching, press: context => ({ ...AT(context), D: 1 }), wait: 36 },
     { below: 0.3, press: () => ({ A: 1 }), wait: 12 },
     { below: 0.34, press: () => ({ B: 1 }), wait: 16 },
-    { below: 0.5, when: c => c.dist > GRAB_RANGE, press: AT },
+    { below: 0.5, when: context => context.distance > GRAB_RANGE, press: AT },
     { below: 0.54, press: AWAY },
   ];
 }
 
 function chooseAttack(attacks: readonly Attack[], context: Context, scaled: number): Decision {
-  const attack = attacks.find(a => scaled < a.below && (a.when?.(context) ?? true));
+  const attack = attacks.find(option => scaled < option.below && (option.when?.(context) ?? true));
   if (!attack) {
     return hold({});
   }

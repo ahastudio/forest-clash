@@ -31,9 +31,9 @@ interface Brain {
 function observe({ engine, mind, level }: Brain, id: PlayerId): Context {
   const me = engine.fighters[id];
   const foe = engine.fighters[id === 0 ? 1 : 0];
-  const dx = foe.x - me.x;
-  const [toward, away] = dx > 0 ? (['r', 'l'] as const) : (['l', 'r'] as const);
-  return { me, foe, dist: Math.abs(dx), toward, away, mind, difficulty: difficultyFor(level()) };
+  const deltaX = foe.x - me.x;
+  const [toward, away] = deltaX > 0 ? (['r', 'l'] as const) : (['l', 'r'] as const);
+  return { me, foe, distance: Math.abs(deltaX), toward, away, mind, difficulty: difficultyFor(level()) };
 }
 
 function decideNow(brain: Brain, id: PlayerId): AiPad {
