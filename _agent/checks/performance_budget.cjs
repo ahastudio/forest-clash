@@ -63,10 +63,8 @@ function frameViolations() {
   if (!fs.existsSync(report)) {
     return ['coverage/bench.json이 없다: 먼저 pnpm run bench를 실행한다'];
   }
-  const benchmarks = JSON.parse(fs.readFileSync(report, 'utf8')).files.flatMap(file => file.groups.flatMap(group => group.benchmarks));
-  return benchmarks.flatMap(({ name, max }) =>
-    judge(`프레임당 계산(${name})`, max / BENCH_FRAMES, FRAME_MILLISECONDS * MAX_CALCULATION_RATIO, 'ms'),
-  );
+  const { latency } = JSON.parse(fs.readFileSync(report, 'utf8'));
+  return judge('프레임당 계산(엔진과 컴퓨터 상대)', latency.max / BENCH_FRAMES, FRAME_MILLISECONDS * MAX_CALCULATION_RATIO, 'ms');
 }
 
 const violations = [...sizeViolations(), ...frameViolations()];

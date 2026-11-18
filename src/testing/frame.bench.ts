@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest';
+import { describe, test } from 'vitest';
 import { create } from '../ai';
 import type { PadInput } from '../engine';
 import { createEngine } from '../engine';
@@ -24,5 +24,7 @@ function playFrames(): void {
 }
 
 describe('프레임 속도', () => {
-  bench('엔진과 컴퓨터 상대 600프레임', playFrames);
+  test('엔진과 컴퓨터 상대 600프레임', async ({ bench }) => {
+    await bench('엔진과 컴퓨터 상대 600프레임', { writeResult: 'coverage/bench.json' }, playFrames).run();
+  });
 });

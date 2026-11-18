@@ -49,13 +49,6 @@ describe('타이틀', () => {
   it('터치 기기에서는 Space 대신 일시정지 버튼을 안내한다', () => {
     const { view, canvas } = makeView({ input: 'touch' });
     drawTitle(view);
-    expect(canvas.texts().join('')).toContain('⏸: 조작법');
-    expect(canvas.texts().join('')).not.toContain('Space');
-  });
-
-  it('터치 기기에서는 Space 대신 일시정지 버튼을 안내한다', () => {
-    const { view, canvas } = makeView({ input: 'touch' });
-    drawTitle(view);
     expect(canvas.texts()).toContain('화면의 메뉴를 눌러 선택   오른쪽 위 ⏸: 조작법');
     expect(canvas.texts().join('')).not.toContain('Space');
   });
