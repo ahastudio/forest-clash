@@ -11,7 +11,7 @@ const root = process.cwd();
 const SOURCE_DIRECTORIES = ['src'];
 const DANGEROUS_API = /\b(eval|Function)\s*\(|\.(innerHTML|outerHTML)\b|insertAdjacentHTML|document\.write|dangerouslySetInnerHTML/;
 const NETWORK_API = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\b|navigator\.sendBeacon|postMessage/;
-const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com', 'accounts.google.com'];
+const ALLOWED_HOSTS = ['www.w3.org', 'openapi.vercel.sh', 'forest-clash.a99.dev', 'static.getclicky.com', 'in.getclicky.com', 'accounts.google.com', 'discord.gg', 'github.com'];
 const EXTERNAL_URL = new RegExp(`https?://(?!(?:${ALLOWED_HOSTS.map(host => host.replace(/\./g, '\\.')).join('|')})(?:[/;" ]|$))`);
 // 서버와 통신하는 코드는 이 파일 한 곳에만 둔다.
 const NETWORK_FILE = path.join('src', 'online', 'web-socket.ts');
