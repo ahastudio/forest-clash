@@ -2,17 +2,16 @@ import { execSync } from 'node:child_process';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-// 화면 구석에 보일 버전: 요청마다 현재 커밋 번호와 미커밋 변경 여부를 읽는다. 어떤 버전을 보고 있는지 눈으로 확인하기 위함이다.
+// 화면 구석에 보일 버전: 요청마다 현재 커밋 번호를 읽는다. 어떤 버전을 보고 있는지 눈으로 확인하기 위함이다.
 const version = (): string => {
   const deployedCommit = process.env.VERCEL_GIT_COMMIT_SHA;
   if (deployedCommit) {
     return deployedCommit.slice(0, 7);
   }
   try {
-    const cwd = import.meta.dirname;
-    const hash = execSync('git rev-parse --short HEAD', { cwd }).toString().trim();
-    const dirty = execSync('git status --porcelain -- .', { cwd }).toString().trim() ? '+수정중' : '';
-    return hash + dirty;
+    return execSync('git rev-parse --short HEAD', { cwd: import.meta.dirname })
+      .toString()
+      .trim();
   } catch {
     return '알 수 없음';
   }
