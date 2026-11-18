@@ -58,6 +58,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    // 테스트가 `style.css?raw`로 스타일 규칙을 읽으므로 CSS 가져오기를 빈 글자로 바꾸지 않는다.
+    css: { include: [/style\.css/] },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],

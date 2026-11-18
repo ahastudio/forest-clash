@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import html from '../../../index.html?raw';
+import { compactCss, readCompactStyle } from '../../testing/css';
 import { BUTTON_NAMES } from './button-control';
+
+const style = readCompactStyle();
 
 describe('화면 조작 마크업', () => {
   it('코드가 찾는 요소가 모두 페이지에 있다', () => {
@@ -13,10 +16,12 @@ describe('화면 조작 마크업', () => {
   });
 
   it('기본으로는 숨기고 터치 기기에서만 보인다', () => {
-    const base = html.slice(0, html.indexOf('@media (pointer:coarse)'));
-    expect(base).toContain('.touch{display:none}');
-    expect(html).toContain('@media (pointer:coarse){');
-    expect(html.slice(html.indexOf('@media (pointer:coarse)'))).toContain('.touch{display:block');
+    const base = style.slice(0, style.indexOf(compactCss('@media (pointer: coarse)')));
+    expect(base).toContain(compactCss('.touch {display: none;}'));
+    expect(style).toContain(compactCss('@media (pointer: coarse) {'));
+    expect(style.slice(style.indexOf(compactCss('@media (pointer: coarse)')))).toContain(
+      compactCss('.touch {display: block;'),
+    );
   });
 
   it('두 손가락 조작으로 화면이 확대되지 않게 뷰포트에서 확대를 끈다', () => {
@@ -24,7 +29,7 @@ describe('화면 조작 마크업', () => {
   });
 
   it('모든 버튼은 화면 조작 영역 안에 있고 손가락 모양 커서를 가진다', () => {
-    expect(html).toMatch(/\.touch button\{cursor:pointer;/);
+    expect(style).toContain(compactCss('.touch button {cursor: pointer;'));
     expect(html.slice(0, html.indexOf('<div class="touch"'))).not.toContain('<button');
   });
 });
